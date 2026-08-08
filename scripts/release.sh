@@ -56,7 +56,15 @@ EOF
 fi
 
 echo "Signing update and regenerating appcast…"
-.tools/bin/generate_appcast --download-url-prefix "$DOWNLOAD_URL_PREFIX" releases/
+# --maximum-deltas 0: no binary delta patches. GitHub rewrites spaces in
+# asset filenames to dots ("iPod Connect12-9.delta" becomes
+# "iPod.Connect12-9.delta"), so the URL the appcast generates 404s. The app is
+# only ~2 MB, so full-zip updates cost little and never break.
+# --maximum-versions 1: only the newest build belongs in the feed. Older
+# entries keep the current tag's URL prefix, which 404s, and Sparkle only
+# needs the latest version to decide whether to offer an update.
+.tools/bin/generate_appcast --maximum-deltas 0 --maximum-versions 1 \
+  --download-url-prefix "$DOWNLOAD_URL_PREFIX" releases/
 
 # A stable-named copy for the website's Download button. Uploading this to
 # every release means https://github.com/<repo>/releases/latest/download/
