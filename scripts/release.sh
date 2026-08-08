@@ -26,7 +26,7 @@ APP_BUNDLE="iPod Connect"
 # Where the zip will actually be downloaded from once published — a GitHub
 # Release's asset URL, one directory per tag. Override by exporting
 # GITHUB_REPO=you/your-repo before running, or by editing this default.
-GITHUB_REPO="${GITHUB_REPO:-davidsomper/ipod-connect}"
+GITHUB_REPO="${GITHUB_REPO:-Davidjrsomper/ipod-connect}"
 DOWNLOAD_URL_PREFIX="https://github.com/${GITHUB_REPO}/releases/download/v${VERSION}/"
 
 if grep -q "__SPARKLE_PUBLIC_ED_KEY__" Resources/Info.plist; then

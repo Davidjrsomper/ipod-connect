@@ -1,6 +1,6 @@
 # Shipping a release
 
-Everything below assumes the repo is `github.com/davidsomper/ipod-connect`.
+Everything below assumes the repo is `github.com/Davidjrsomper/ipod-connect`.
 If you use a different name, change `GITHUB_REPO` in `scripts/release.sh`,
 `SUFeedURL` in `Resources/Info.plist`, and the download links in
 `web/index.html`.
@@ -10,12 +10,12 @@ If you use a different name, change `GITHUB_REPO` in `scripts/release.sh`,
 1. **Create the repo** on GitHub named `ipod-connect` (public).
 2. **Push the code:**
    ```
-   git remote add origin https://github.com/davidsomper/ipod-connect.git
+   git remote add origin https://github.com/Davidjrsomper/ipod-connect.git
    git push -u origin main
    ```
 3. **Turn on GitHub Pages:** repo Settings → Pages → Source: `main`, folder
    `/docs`. This publishes both the website and the Sparkle update feed at
-   `https://davidsomper.github.io/ipod-connect/`.
+   `https://davidjrsomper.github.io/ipod-connect/`.
 
 ## Every release
 

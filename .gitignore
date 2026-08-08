@@ -7,3 +7,12 @@ releases/old_updates/
 .DS_Store
 .swiftpm/
 keys/
+
+# Build artifacts — these go to GitHub Releases, not into git history
+dist/
+releases/*.zip
+releases/*.html
+
+# Raw screenshots. The optimised *-web.jpg files are what the site embeds;
+# these originals are several MB each and easy to retake.
+web/img/*.png

@@ -29,7 +29,7 @@
 	<key>SUEnableAutomaticChecks</key>
 	<true/>
 	<key>SUFeedURL</key>
-	<string>https://davidsomper.github.io/ipod-connect/appcast.xml</string>
+	<string>https://davidjrsomper.github.io/ipod-connect/appcast.xml</string>
 	<key>SUPublicEDKey</key>
 	<string>T4A5F2mduTPCmoN5Ggv09lnLDQCBpntxN+Q2440jGEc=</string>
 	<key>SUScheduledCheckInterval</key>
