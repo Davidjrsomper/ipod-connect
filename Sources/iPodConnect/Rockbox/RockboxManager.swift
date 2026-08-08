@@ -67,12 +67,13 @@ final class RockboxManager: ObservableObject {
 
     // MARK: Themes
 
-    func loadThemes() async {
+    func loadThemes(forceRefresh: Bool = false) async {
         isLoadingThemes = true
         themeError = nil
         defer { isLoadingThemes = false }
         do {
-            themes = try await RockboxCatalog.fetchThemes(for: activeTarget)
+            themes = try await RockboxCatalog.fetchThemes(
+                for: activeTarget, forceRefresh: forceRefresh)
         } catch {
             themes = []
             themeError = error.localizedDescription

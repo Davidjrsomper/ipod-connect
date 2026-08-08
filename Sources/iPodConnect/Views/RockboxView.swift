@@ -112,13 +112,13 @@ struct RockboxView: View {
                     .font(.system(size: 11))
                     .frame(width: 170)
                 Button {
-                    Task { await rockbox.loadThemes() }
+                    Task { await rockbox.loadThemes(forceRefresh: true) }
                 } label: {
                     Image(systemName: "arrow.clockwise").font(.system(size: 10))
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(Theme.iconTint)
-                .help("Reload theme list")
+                .help("Re-download the theme list")
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 8)

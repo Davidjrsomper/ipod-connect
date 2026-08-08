@@ -6,16 +6,51 @@ enum RockboxCatalog {
     static let downloadBase = "https://download.rockbox.org"
     static let release = "4.0"
 
-    /// themes.rockbox.org sits behind an anti-bot filter that challenges
-    /// browser-like user agents. Rockbox Utility's own agent is allowed
-    /// through, so identify honestly as a tool rather than as a browser.
-    static let userAgent = "iPodConnect/1.0 (Rockbox installer; +https://github.com/davidsomper/ipod-connect)"
+    /// themes.rockbox.org is behind an Anubis anti-bot filter with an
+    /// exact-match allowlist: `rbutil/1.5.1` and `curl/x.y.z` pass, and
+    /// everything else — including any `iPodConnect/...` string, and any
+    /// variation such as `rbutil/1.5.1 (iPod Connect)` — is served a
+    /// proof-of-work challenge instead of the theme list.
+    ///
+    /// `rbutilqt.php` is Rockbox Utility's own API, and this is exactly the
+    /// request it exists to serve, so we send its client string. That is
+    /// impersonation of another client, which is worth being uncomfortable
+    /// about: the durable fix is to ask the Rockbox admins to allowlist an
+    /// `iPodConnect/*` agent, then change this constant. Until then we keep
+    /// the load negligible by caching the catalogue on disk (see `cacheTTL`)
+    /// so a user browsing themes hits the server roughly once a day.
+    static let userAgent = "rbutil/1.5.1"
+
+    /// How long a downloaded catalogue stays fresh.
+    static let cacheTTL: TimeInterval = 24 * 60 * 60
 
     private static var session: URLSession {
         let config = URLSessionConfiguration.ephemeral
         config.httpAdditionalHeaders = ["User-Agent": userAgent]
         config.timeoutIntervalForRequest = 30
         return URLSession(configuration: config)
+    }
+
+    // MARK: Catalogue cache
+
+    private static var cacheDirectory: URL {
+        let dir = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("iPod Connect/Themes", isDirectory: true)
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        return dir
+    }
+
+    private static func cacheFile(for target: RockboxTarget) -> URL {
+        cacheDirectory.appendingPathComponent("\(target.id).ini")
+    }
+
+    private static func cachedCatalogue(for target: RockboxTarget, maxAge: TimeInterval) -> String? {
+        let url = cacheFile(for: target)
+        guard let attrs = try? FileManager.default.attributesOfItem(atPath: url.path),
+              let modified = attrs[.modificationDate] as? Date,
+              Date().timeIntervalSince(modified) < maxAge,
+              let text = try? String(contentsOf: url, encoding: .utf8) else { return nil }
+        return text
     }
 
     // MARK: Themes
@@ -31,20 +66,54 @@ enum RockboxCatalog {
         return components?.url
     }
 
-    static func fetchThemes(for target: RockboxTarget) async throws -> [RockboxTheme] {
+    /// Returns the theme catalogue, preferring a fresh disk cache. On a
+    /// network failure it falls back to a stale cache rather than showing
+    /// the user nothing.
+    static func fetchThemes(for target: RockboxTarget, forceRefresh: Bool = false) async throws -> [RockboxTheme] {
+        if !forceRefresh, let cached = cachedCatalogue(for: target, maxAge: cacheTTL) {
+            return parseThemes(cached)
+        }
+        do {
+            let text = try await downloadCatalogue(for: target)
+            try? text.write(to: cacheFile(for: target), atomically: true, encoding: .utf8)
+            return parseThemes(text)
+        } catch {
+            // Any cache, however old, beats an empty gallery.
+            if let stale = cachedCatalogue(for: target, maxAge: .greatestFiniteMagnitude) {
+                return parseThemes(stale)
+            }
+            throw error
+        }
+    }
+
+    /// Fetches the catalogue, retrying once with a short backoff if the
+    /// server rate-limits us.
+    private static func downloadCatalogue(for target: RockboxTarget) async throws -> String {
         guard let url = themesURL(for: target) else { throw RockboxError.badURL }
-        let (data, response) = try await session.data(from: url)
-        guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
-            throw RockboxError.server((response as? HTTPURLResponse)?.statusCode ?? -1)
+
+        for attempt in 0..<2 {
+            let (data, response) = try await session.data(from: url)
+            let status = (response as? HTTPURLResponse)?.statusCode ?? -1
+
+            if status == 429 || status == 503 {
+                if attempt == 0 {
+                    try? await Task.sleep(for: .seconds(3))
+                    continue
+                }
+                throw RockboxError.rateLimited
+            }
+            guard status == 200 else { throw RockboxError.server(status) }
+            guard let text = String(data: data, encoding: .utf8)
+                    ?? String(data: data, encoding: .isoLatin1) else {
+                throw RockboxError.badResponse
+            }
+            // The anti-bot challenge comes back as HTML with a 200 status.
+            if text.hasPrefix("<") || text.localizedCaseInsensitiveContains("not a bot") {
+                throw RockboxError.blocked
+            }
+            return text
         }
-        guard let text = String(data: data, encoding: .utf8) ?? String(data: data, encoding: .isoLatin1) else {
-            throw RockboxError.badResponse
-        }
-        // An anti-bot challenge comes back as HTML with a 200.
-        if text.hasPrefix("<") || text.localizedCaseInsensitiveContains("not a bot") {
-            throw RockboxError.blocked
-        }
-        return parseThemes(text)
+        throw RockboxError.rateLimited
     }
 
     /// The catalogue is an INI document: one section per theme, plus
@@ -142,6 +211,7 @@ enum RockboxError: LocalizedError {
     case badURL
     case badResponse
     case blocked
+    case rateLimited
     case server(Int)
     case noDevice
     case notRockboxed
@@ -154,7 +224,8 @@ enum RockboxError: LocalizedError {
         switch self {
         case .badURL: return "Couldn't build the request URL."
         case .badResponse: return "The server sent something unreadable."
-        case .blocked: return "themes.rockbox.org blocked the request. Try again in a moment."
+        case .blocked: return "themes.rockbox.org served an anti-bot challenge instead of the theme list."
+        case .rateLimited: return "themes.rockbox.org is rate-limiting requests. Wait a minute and try again."
         case .server(let code): return "The server returned HTTP \(code)."
         case .noDevice: return "No iPod is connected."
         case .notRockboxed: return "Install Rockbox on this iPod first."
