@@ -58,6 +58,22 @@ fi
 echo "Signing update and regenerating appcast…"
 .tools/bin/generate_appcast --download-url-prefix "$DOWNLOAD_URL_PREFIX" releases/
 
+# A stable-named copy for the website's Download button. Uploading this to
+# every release means https://github.com/<repo>/releases/latest/download/
+# iPodConnect.zip always fetches the newest build, so the site never needs
+# editing when you ship an update. Kept outside releases/ so it doesn't
+# confuse generate_appcast, which treats every archive in there as a version.
+mkdir -p dist
+cp "$ZIP" "dist/${APP_NAME}.zip"
+echo "Stable download copy: dist/${APP_NAME}.zip"
+
+# docs/ is what GitHub Pages serves: the website and the Sparkle feed live
+# together, so SUFeedURL keeps resolving after every release.
+mkdir -p docs
+cp releases/appcast.xml docs/appcast.xml
+cp web/index.html docs/index.html
+echo "Updated docs/ for GitHub Pages (site + appcast)"
+
 echo ""
 echo "Done. Two separate places to publish to:"
 echo "  1. Upload $ZIP as a GitHub Release asset tagged v${VERSION}"

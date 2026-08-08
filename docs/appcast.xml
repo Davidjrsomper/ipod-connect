@@ -1,0 +1,20 @@
+<?xml version="1.0" standalone="yes"?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+    <channel>
+        <title>iPod Connect</title>
+        <item>
+            <title>1.0.0</title>
+            <pubDate>Sat, 08 Aug 2026 22:49:05 +0300</pubDate>
+            <sparkle:version>9</sparkle:version>
+            <sparkle:shortVersionString>1.0.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h3>iPodConnect 1.0.0</h3>
+<ul>
+  <li>See the commit log for what changed.</li>
+</ul>
+]]></description>
+            <enclosure url="https://github.com/davidsomper/ipod-connect/releases/download/v1.0.0/iPodConnect-1.0.0.zip" length="2055963" type="application/octet-stream" sparkle:edSignature="VDbpeWhCIWMBKWHDAyn3jLsTJUurlvlv/KZ5l67Yr68EqE0ZBOJLstRDL8jV7b5sC/dJ6nsWlFs35eEB5zdzAw=="/>
+        </item>
+    </channel>
+</rss>
