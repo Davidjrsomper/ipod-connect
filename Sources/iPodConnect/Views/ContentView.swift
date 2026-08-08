@@ -79,8 +79,8 @@ struct ContentView: View {
         if library.folderPath == nil {
             emptyState(
                 icon: "folder.badge.plus",
-                title: "Welcome to Fidelity",
-                message: "Choose your music folder and Fidelity will build your library from the FLAC (and other audio) files inside it.",
+                title: "Welcome to iPod Connect",
+                message: "Choose your music folder and iPod Connect will build your library from the FLAC (and other audio) files inside it.",
                 buttonTitle: "Choose Music Folder…"
             ) {
                 library.chooseFolder()
@@ -138,7 +138,7 @@ struct WindowAccessor: NSViewRepresentable {
             window.titleVisibility = .hidden
             window.styleMask.insert(.fullSizeContentView)
             window.isMovableByWindowBackground = false
-            window.title = "Fidelity"
+            window.title = "iPod Connect"
         }
         return view
     }

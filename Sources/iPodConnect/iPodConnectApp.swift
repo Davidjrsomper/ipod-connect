@@ -2,7 +2,7 @@ import SwiftUI
 import AVFoundation
 
 @main
-struct FidelityApp: App {
+struct iPodConnectApp: App {
     @StateObject private var library = Library()
     @StateObject private var player = Player()
     @StateObject private var updaterViewModel = UpdaterViewModel()

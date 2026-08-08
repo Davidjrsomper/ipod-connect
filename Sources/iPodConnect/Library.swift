@@ -202,7 +202,7 @@ final class Library: ObservableObject {
         panel.canChooseFiles = false
         panel.allowsMultipleSelection = false
         panel.prompt = "Choose"
-        panel.message = "Choose your music folder. Fidelity will scan it for FLAC and other audio files."
+        panel.message = "Choose your music folder. iPod Connect will scan it for FLAC and other audio files."
         if panel.runModal() == .OK, let url = panel.url {
             folderPath = url.path
             rescan()
@@ -352,7 +352,7 @@ final class Library: ObservableObject {
 
     private static var saveURL: URL {
         let dir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("Fidelity", isDirectory: true)
+            .appendingPathComponent("iPod Connect", isDirectory: true)
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         return dir.appendingPathComponent("library.json")
     }

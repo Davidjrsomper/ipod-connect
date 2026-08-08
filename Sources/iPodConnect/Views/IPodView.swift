@@ -576,7 +576,7 @@ struct AboutScreen: View {
     var body: some View {
         VStack(spacing: 6) {
             Spacer()
-            Text("Fidelity")
+            Text("iPod Connect")
                 .font(.system(size: 15, weight: .bold))
                 .foregroundStyle(.black)
             Text("Songs: \(library.tracks.count)")

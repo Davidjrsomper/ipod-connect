@@ -1,5 +1,5 @@
 #!/bin/zsh
-# Cuts a release: builds Fidelity.app, zips it, signs the update with the
+# Cuts a release: builds "iPod Connect.app", zips it, signs the update with the
 # Sparkle EdDSA key from Keychain (see generate_update_keys.sh), and
 # regenerates releases/appcast.xml.
 #
@@ -20,12 +20,13 @@ if [[ -n "$1" ]]; then
   echo "$1" > VERSION
 fi
 VERSION=$(cat VERSION)
-APP_NAME="Fidelity"
+APP_NAME="iPodConnect"
+APP_BUNDLE="iPod Connect"
 
 # Where the zip will actually be downloaded from once published — a GitHub
 # Release's asset URL, one directory per tag. Override by exporting
 # GITHUB_REPO=you/your-repo before running, or by editing this default.
-GITHUB_REPO="${GITHUB_REPO:-davidsomper/fidelity}"
+GITHUB_REPO="${GITHUB_REPO:-davidsomper/ipod-connect}"
 DOWNLOAD_URL_PREFIX="https://github.com/${GITHUB_REPO}/releases/download/v${VERSION}/"
 
 if grep -q "__SPARKLE_PUBLIC_ED_KEY__" Resources/Info.plist; then
@@ -40,7 +41,7 @@ echo "Building $APP_NAME $VERSION…"
 mkdir -p releases
 ZIP="releases/${APP_NAME}-${VERSION}.zip"
 rm -f "$ZIP"
-ditto -c -k --sequesterRsrc --keepParent "build/${APP_NAME}.app" "$ZIP"
+ditto -c -k --sequesterRsrc --keepParent "build/${APP_BUNDLE}.app" "$ZIP"
 echo "Archived $ZIP"
 
 NOTES="releases/${APP_NAME}-${VERSION}.html"
@@ -60,6 +61,6 @@ echo "Signing update and regenerating appcast…"
 echo ""
 echo "Done. Two separate places to publish to:"
 echo "  1. Upload $ZIP as a GitHub Release asset tagged v${VERSION}"
-echo "     (gh release create v${VERSION} '$ZIP' '$NOTES' --title 'Fidelity ${VERSION}')"
+echo "     (gh release create v${VERSION} '$ZIP' '$NOTES' --title 'iPod Connect ${VERSION}')"
 echo "  2. Publish releases/appcast.xml wherever SUFeedURL points"
 echo "     (see docs/DISTRIBUTION.md)"

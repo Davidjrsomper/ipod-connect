@@ -121,7 +121,7 @@ struct LCDView: View {
                     Image(systemName: "music.note")
                         .font(.system(size: 14))
                         .foregroundStyle(Theme.lcdSubText)
-                    Text("Fidelity")
+                    Text("iPod Connect")
                         .font(.system(size: 12, weight: .medium))
                         .foregroundStyle(Theme.lcdSubText)
                 }

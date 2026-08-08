@@ -3,13 +3,13 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleDisplayName</key>
-	<string>Fidelity</string>
+	<string>iPod Connect</string>
 	<key>CFBundleExecutable</key>
-	<string>Fidelity</string>
+	<string>iPodConnect</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.davidsomper.fidelity</string>
+	<string>com.davidsomper.ipodconnect</string>
 	<key>CFBundleName</key>
-	<string>Fidelity</string>
+	<string>iPod Connect</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -29,7 +29,7 @@
 	<key>SUEnableAutomaticChecks</key>
 	<true/>
 	<key>SUFeedURL</key>
-	<string>https://davidsomper.github.io/fidelity/appcast.xml</string>
+	<string>https://davidsomper.github.io/ipod-connect/appcast.xml</string>
 	<key>SUPublicEDKey</key>
 	<string>T4A5F2mduTPCmoN5Ggv09lnLDQCBpntxN+Q2440jGEc=</string>
 	<key>SUScheduledCheckInterval</key>
