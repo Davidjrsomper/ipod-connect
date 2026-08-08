@@ -5,7 +5,17 @@
 set -e
 cd "$(dirname "$0")"
 
-swift build -c release
+# Build each architecture separately, then lipo them into one universal
+# binary. `swift build --arch arm64 --arch x86_64` would do this in one step,
+# but that path needs xcbuild from full Xcode, which Command Line Tools alone
+# doesn't provide.
+UNIVERSAL=${UNIVERSAL:-1}
+if [[ "$UNIVERSAL" == "1" ]]; then
+  swift build -c release --arch arm64
+  swift build -c release --arch x86_64
+else
+  swift build -c release
+fi
 
 APP="build/iPod Connect.app"
 FRAMEWORK_SRC=$(find .build/artifacts -type d -iname "Sparkle.framework" -path "*macos*" | head -1)
@@ -17,7 +27,14 @@ fi
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources" "$APP/Contents/Frameworks"
 
-cp .build/release/iPodConnect "$APP/Contents/MacOS/iPodConnect"
+if [[ "$UNIVERSAL" == "1" ]]; then
+  lipo -create \
+    .build/arm64-apple-macosx/release/iPodConnect \
+    .build/x86_64-apple-macosx/release/iPodConnect \
+    -output "$APP/Contents/MacOS/iPodConnect"
+else
+  cp .build/release/iPodConnect "$APP/Contents/MacOS/iPodConnect"
+fi
 cp Resources/Info.plist "$APP/Contents/Info.plist"
 ditto "$FRAMEWORK_SRC" "$APP/Contents/Frameworks/Sparkle.framework"
 

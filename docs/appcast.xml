@@ -3,6 +3,22 @@
     <channel>
         <title>iPod Connect</title>
         <item>
+            <title>1.0.1</title>
+            <pubDate>Sat, 08 Aug 2026 23:18:13 +0300</pubDate>
+            <sparkle:version>12</sparkle:version>
+            <sparkle:shortVersionString>1.0.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[<h3>iPodConnect 1.0.1</h3>
+<ul>
+  <li>See the commit log for what changed.</li>
+</ul>
+]]></description>
+            <enclosure url="https://github.com/Davidjrsomper/ipod-connect/releases/download/v1.0.1/iPodConnect-1.0.1.zip" length="3032802" type="application/octet-stream" sparkle:edSignature="GXIAsCOQM07PLRXlkl2W+JaqPZkjVGG3hzF6b7uJOnyTztjFIo79Nsz/Rul1/H5UUSnSpfoWhLr3OGFMedg3Cg=="/>
+            <sparkle:deltas>
+                <enclosure url="https://github.com/Davidjrsomper/ipod-connect/releases/download/v1.0.1/iPod%20Connect12-9.delta" sparkle:deltaFrom="9" length="493394" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="977616" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="3m+ivDhO54srOVVgNnhQZmKHdINzB6um1cO0tDbTQJQkwHsYXydmtB7B4IY5jbv1RIVyMdmC4o/CQJnNxqzdBg=="/>
+            </sparkle:deltas>
+        </item>
+        <item>
             <title>1.0.0</title>
             <pubDate>Sat, 08 Aug 2026 22:49:05 +0300</pubDate>
             <sparkle:version>9</sparkle:version>
@@ -14,7 +30,7 @@
   <li>See the commit log for what changed.</li>
 </ul>
 ]]></description>
-            <enclosure url="https://github.com/davidsomper/ipod-connect/releases/download/v1.0.0/iPodConnect-1.0.0.zip" length="2055963" type="application/octet-stream" sparkle:edSignature="VDbpeWhCIWMBKWHDAyn3jLsTJUurlvlv/KZ5l67Yr68EqE0ZBOJLstRDL8jV7b5sC/dJ6nsWlFs35eEB5zdzAw=="/>
+            <enclosure url="https://github.com/Davidjrsomper/ipod-connect/releases/download/v1.0.1/iPodConnect-1.0.0.zip" length="2055963" type="application/octet-stream" sparkle:edSignature="VDbpeWhCIWMBKWHDAyn3jLsTJUurlvlv/KZ5l67Yr68EqE0ZBOJLstRDL8jV7b5sC/dJ6nsWlFs35eEB5zdzAw=="/>
         </item>
     </channel>
 </rss>

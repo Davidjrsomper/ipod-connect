@@ -8,7 +8,8 @@ cd "$(dirname "$0")"
 OUT="../../build/ipodpatcher"
 mkdir -p "$(dirname "$OUT")"
 
-clang -arch arm64 -O2 -Wall -DVERSION='"5.0-ipodconnect"' -o "$OUT" \
+# Universal: the app runs on Intel Macs too, so the bootloader tool must.
+clang -arch arm64 -arch x86_64 -O2 -Wall -DVERSION='"5.0-ipodconnect"' -o "$OUT" \
   main.c ipodpatcher.c fat32format.c arc4.c ipodio-posix.c ipodpatcher_aupd.c \
   -framework CoreFoundation -framework IOKit
 
