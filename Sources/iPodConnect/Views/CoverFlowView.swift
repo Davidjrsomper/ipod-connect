@@ -10,6 +10,8 @@ struct CoverFlowView: View {
     /// Set when the index change originated from a list click, so the list
     /// doesn't yank itself to the top of the album under the user's cursor.
     @State private var indexDrivenByList = false
+    /// Drives the knob's lift-and-brighten while the user is scrubbing.
+    @State private var isScrubbing = false
 
     private var albums: [AlbumGroup] { library.visibleAlbums }
 
@@ -126,30 +128,38 @@ struct CoverFlowView: View {
         GeometryReader { geo in
             let count = max(albums.count - 1, 1)
             let fraction = CGFloat(index) / CGFloat(count)
-            let knobWidth: CGFloat = 46
+            let knobWidth: CGFloat = 54
+            let travel = max(0, geo.size.width - knobWidth)
+
             ZStack(alignment: .leading) {
-                Capsule()
-                    .fill(Theme.coverFlowTrack)
-                    .frame(height: 9)
-                Capsule()
-                    .fill(LinearGradient(
-                        colors: [Theme.coverFlowKnobTop, Theme.coverFlowKnobBottom],
-                        startPoint: .top, endPoint: .bottom))
-                    .overlay(Capsule().strokeBorder(.black.opacity(0.25), lineWidth: 0.5))
-                    .frame(width: knobWidth, height: 11)
-                    .offset(x: fraction * max(0, geo.size.width - knobWidth))
+                GlassTrack()
+                    .frame(height: 11)
+                GlassKnob(isDragging: isScrubbing)
+                    .frame(width: knobWidth, height: 17)
+                    .offset(x: fraction * travel)
             }
             .frame(maxHeight: .infinity)
             .contentShape(Rectangle())
             .gesture(
-                DragGesture(minimumDistance: 0).onChanged { value in
-                    let usable = max(1, geo.size.width - knobWidth)
-                    let f = max(0, min(1, (value.location.x - knobWidth / 2) / usable))
-                    index = Int((f * CGFloat(count)).rounded())
-                }
+                DragGesture(minimumDistance: 0)
+                    .onChanged { value in
+                        if !isScrubbing {
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                isScrubbing = true
+                            }
+                        }
+                        let usable = max(1, travel)
+                        let f = max(0, min(1, (value.location.x - knobWidth / 2) / usable))
+                        index = Int((f * CGFloat(count)).rounded())
+                    }
+                    .onEnded { _ in
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
+                            isScrubbing = false
+                        }
+                    }
             )
         }
-        .frame(height: 14)
+        .frame(height: 20)
     }
 
     private func move(by steps: Int) {
@@ -212,6 +222,100 @@ struct CoverFlowView: View {
     private func playAlbum(_ album: AlbumGroup) {
         guard let first = album.tracks.first else { return }
         player.play(track: first, in: albums.flatMap(\.tracks))
+    }
+}
+
+// MARK: - Liquid Glass slider
+//
+// SwiftUI's own `glassEffect` isn't in the Command Line Tools SDK, so the
+// material is built by hand: a translucent body that lets the covers show
+// through, a bright specular rim catching light from above, and a soft
+// lensing highlight — the cues that read as "glass" rather than "plastic".
+
+/// The recessed channel the knob travels in.
+struct GlassTrack: View {
+    var body: some View {
+        Capsule()
+            .fill(.ultraThinMaterial)
+            .overlay {
+                // Darkened well, so the track reads as carved into the surface.
+                Capsule().fill(
+                    LinearGradient(
+                        colors: [.black.opacity(0.28), .black.opacity(0.10)],
+                        startPoint: .top, endPoint: .bottom)
+                )
+            }
+            .overlay {
+                // Light catches the lower lip of a concave surface.
+                Capsule()
+                    .strokeBorder(
+                        LinearGradient(
+                            colors: [.white.opacity(0.06), .white.opacity(0.22)],
+                            startPoint: .top, endPoint: .bottom),
+                        lineWidth: 1)
+            }
+            .compositingGroup()
+            .shadow(color: .black.opacity(0.22), radius: 1, y: 1)
+    }
+}
+
+/// The draggable pill: refractive body, specular rim, and a highlight that
+/// lifts while scrubbing.
+struct GlassKnob: View {
+    let isDragging: Bool
+
+    var body: some View {
+        Capsule()
+            .fill(.regularMaterial)
+            .overlay {
+                // Body tint — brighter at the top like a lit glass edge, with
+                // a faint warm bounce underneath.
+                Capsule().fill(
+                    LinearGradient(
+                        stops: [
+                            .init(color: .white.opacity(isDragging ? 0.55 : 0.38), location: 0),
+                            .init(color: .white.opacity(0.10), location: 0.45),
+                            .init(color: .white.opacity(0.02), location: 0.72),
+                            .init(color: .white.opacity(0.16), location: 1),
+                        ],
+                        startPoint: .top, endPoint: .bottom)
+                )
+            }
+            .overlay {
+                // Specular sheen across the top third — the giveaway that a
+                // surface is glass rather than matte.
+                Capsule()
+                    .fill(
+                        LinearGradient(
+                            colors: [.white.opacity(isDragging ? 0.7 : 0.5), .white.opacity(0)],
+                            startPoint: .top, endPoint: .bottom)
+                    )
+                    .padding(.horizontal, 4)
+                    .padding(.top, 1.5)
+                    .frame(height: 6)
+                    .frame(maxHeight: .infinity, alignment: .top)
+                    .blur(radius: 1.5)
+            }
+            .overlay {
+                // Bright rim, strongest at the top where light lands.
+                Capsule()
+                    .strokeBorder(
+                        LinearGradient(
+                            colors: [
+                                .white.opacity(isDragging ? 0.85 : 0.6),
+                                .white.opacity(0.18),
+                                .white.opacity(0.35),
+                            ],
+                            startPoint: .top, endPoint: .bottom),
+                        lineWidth: 1)
+            }
+            .compositingGroup()
+            // Contact shadow grounds it; it lifts and spreads while dragging.
+            .shadow(color: .black.opacity(isDragging ? 0.42 : 0.30),
+                    radius: isDragging ? 6 : 3,
+                    y: isDragging ? 3 : 1.5)
+            .shadow(color: .white.opacity(isDragging ? 0.22 : 0), radius: 5)
+            .scaleEffect(isDragging ? 1.06 : 1, anchor: .center)
     }
 }
 
