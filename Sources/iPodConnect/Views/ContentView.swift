@@ -82,6 +82,8 @@ struct ContentView: View {
     private var mainArea: some View {
         if library.source == .rockbox {
             RockboxView()
+        } else if library.source == .device {
+            DeviceView()
         } else if library.folderPath == nil {
             emptyState(
                 icon: "folder.badge.plus",
@@ -110,6 +112,7 @@ struct ContentView: View {
             case .artists: ArtistsView()
             case .albums: AlbumsView()
             case .rockbox: RockboxView()
+            case .device: DeviceView()
             }
         }
     }

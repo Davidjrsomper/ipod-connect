@@ -243,7 +243,7 @@ struct SearchField: View {
         case .music: return "Search"
         case .artists: return "Find in Artists"
         case .albums: return "Find in Albums"
-        case .rockbox: return "Search"
+        case .rockbox, .device: return "Search"
         }
     }
 

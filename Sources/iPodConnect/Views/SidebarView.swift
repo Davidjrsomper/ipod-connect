@@ -3,6 +3,7 @@ import SwiftUI
 struct SidebarView: View {
     @EnvironmentObject var library: Library
     @EnvironmentObject var player: Player
+    @EnvironmentObject var rockbox: RockboxManager
     @State private var artwork: NSImage?
 
     var body: some View {
@@ -12,6 +13,11 @@ struct SidebarView: View {
             sourceRow("Music", icon: "music.note", source: .music)
             sourceRow("Artists", icon: "music.mic", source: .artists)
             sourceRow("Albums", icon: "square.stack", source: .albums)
+
+            if let ipod = rockbox.selectedDevice {
+                sectionHeader("DEVICE")
+                sourceRow(ipod.volumeName, icon: "ipod", source: .device)
+            }
 
             sectionHeader("ROCKBOX")
             sourceRow("Rockbox", icon: "gearshape.2", source: .rockbox)

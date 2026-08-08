@@ -7,6 +7,7 @@ struct iPodConnectApp: App {
     @StateObject private var player = Player()
     @StateObject private var updaterViewModel = UpdaterViewModel()
     @StateObject private var rockbox = RockboxManager()
+    @StateObject private var device = DeviceManager()
     @AppStorage("darkMode") private var darkMode = false
 
     init() {
@@ -46,6 +47,7 @@ struct iPodConnectApp: App {
                 .environmentObject(library)
                 .environmentObject(player)
                 .environmentObject(rockbox)
+                .environmentObject(device)
                 .onAppear {
                     library.load()
                     library.rescan()

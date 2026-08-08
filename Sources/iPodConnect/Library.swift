@@ -3,7 +3,7 @@ import AVFoundation
 import AppKit
 
 enum LibrarySource {
-    case music, artists, albums, rockbox
+    case music, artists, albums, rockbox, device
 }
 
 enum MusicViewMode {
