@@ -1,5 +1,8 @@
 .build/
 build/
+.tools/
+releases/*.zip
+releases/old_updates/
 *.xcodeproj
 .DS_Store
 .swiftpm/
