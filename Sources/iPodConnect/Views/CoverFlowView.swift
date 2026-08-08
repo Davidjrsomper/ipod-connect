@@ -227,94 +227,34 @@ struct CoverFlowView: View {
 
 // MARK: - Liquid Glass slider
 //
-// SwiftUI's own `glassEffect` isn't in the Command Line Tools SDK, so the
-// material is built by hand: a translucent body that lets the covers show
-// through, a bright specular rim catching light from above, and a soft
-// lensing highlight — the cues that read as "glass" rather than "plastic".
+// Both pieces use the genuine system material through `NSGlassEffectView`
+// (see LiquidGlass.swift) rather than a gradient imitation, so they refract
+// the album art behind them exactly like the volume slider and other macOS 26
+// glass controls.
 
-/// The recessed channel the knob travels in.
+/// The recessed channel the knob travels in — `clear` style, so it reads as
+/// a subtle groove rather than a solid bar.
 struct GlassTrack: View {
     var body: some View {
-        Capsule()
-            .fill(.ultraThinMaterial)
-            .overlay {
-                // Darkened well, so the track reads as carved into the surface.
-                Capsule().fill(
-                    LinearGradient(
-                        colors: [.black.opacity(0.28), .black.opacity(0.10)],
-                        startPoint: .top, endPoint: .bottom)
-                )
-            }
-            .overlay {
-                // Light catches the lower lip of a concave surface.
-                Capsule()
-                    .strokeBorder(
-                        LinearGradient(
-                            colors: [.white.opacity(0.06), .white.opacity(0.22)],
-                            startPoint: .top, endPoint: .bottom),
-                        lineWidth: 1)
-            }
-            .compositingGroup()
-            .shadow(color: .black.opacity(0.22), radius: 1, y: 1)
+        Color.clear
+            .liquidGlass(cornerRadius: 5.5, clear: true)
     }
 }
 
-/// The draggable pill: refractive body, specular rim, and a highlight that
-/// lifts while scrubbing.
+/// The draggable pill. The system supplies the refraction and specular edge;
+/// the tint and lift are ours, so it responds while scrubbing.
 struct GlassKnob: View {
     let isDragging: Bool
 
     var body: some View {
-        Capsule()
-            .fill(.regularMaterial)
-            .overlay {
-                // Body tint — brighter at the top like a lit glass edge, with
-                // a faint warm bounce underneath.
-                Capsule().fill(
-                    LinearGradient(
-                        stops: [
-                            .init(color: .white.opacity(isDragging ? 0.55 : 0.38), location: 0),
-                            .init(color: .white.opacity(0.10), location: 0.45),
-                            .init(color: .white.opacity(0.02), location: 0.72),
-                            .init(color: .white.opacity(0.16), location: 1),
-                        ],
-                        startPoint: .top, endPoint: .bottom)
-                )
-            }
-            .overlay {
-                // Specular sheen across the top third — the giveaway that a
-                // surface is glass rather than matte.
-                Capsule()
-                    .fill(
-                        LinearGradient(
-                            colors: [.white.opacity(isDragging ? 0.7 : 0.5), .white.opacity(0)],
-                            startPoint: .top, endPoint: .bottom)
-                    )
-                    .padding(.horizontal, 4)
-                    .padding(.top, 1.5)
-                    .frame(height: 6)
-                    .frame(maxHeight: .infinity, alignment: .top)
-                    .blur(radius: 1.5)
-            }
-            .overlay {
-                // Bright rim, strongest at the top where light lands.
-                Capsule()
-                    .strokeBorder(
-                        LinearGradient(
-                            colors: [
-                                .white.opacity(isDragging ? 0.85 : 0.6),
-                                .white.opacity(0.18),
-                                .white.opacity(0.35),
-                            ],
-                            startPoint: .top, endPoint: .bottom),
-                        lineWidth: 1)
-            }
-            .compositingGroup()
-            // Contact shadow grounds it; it lifts and spreads while dragging.
-            .shadow(color: .black.opacity(isDragging ? 0.42 : 0.30),
+        Color.clear
+            .liquidGlass(
+                cornerRadius: 8.5,
+                tint: NSColor.white.withAlphaComponent(isDragging ? 0.22 : 0.10)
+            )
+            .shadow(color: .black.opacity(isDragging ? 0.34 : 0.20),
                     radius: isDragging ? 6 : 3,
                     y: isDragging ? 3 : 1.5)
-            .shadow(color: .white.opacity(isDragging ? 0.22 : 0), radius: 5)
             .scaleEffect(isDragging ? 1.06 : 1, anchor: .center)
     }
 }
