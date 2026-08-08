@@ -29,6 +29,10 @@ struct ContentView: View {
         .background(WindowAccessor())
         .ignoresSafeArea(.all, edges: .top)
         .preferredColorScheme(darkMode ? .dark : .light)
+        .sheet(isPresented: $library.showMissingArtwork) {
+            MissingArtworkView()
+                .environmentObject(library)
+        }
         .onChange(of: library.ipodMode) { _, ipod in
             morphWindow(toIPod: ipod)
         }
@@ -76,7 +80,9 @@ struct ContentView: View {
 
     @ViewBuilder
     private var mainArea: some View {
-        if library.folderPath == nil {
+        if library.source == .rockbox {
+            RockboxView()
+        } else if library.folderPath == nil {
             emptyState(
                 icon: "folder.badge.plus",
                 title: "Welcome to iPod Connect",
@@ -96,9 +102,14 @@ struct ContentView: View {
             }
         } else {
             switch library.source {
-            case .music: TrackListView()
+            case .music:
+                switch library.musicViewMode {
+                case .list: TrackListView()
+                case .coverFlow: CoverFlowView()
+                }
             case .artists: ArtistsView()
             case .albums: AlbumsView()
+            case .rockbox: RockboxView()
             }
         }
     }

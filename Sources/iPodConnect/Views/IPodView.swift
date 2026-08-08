@@ -598,6 +598,7 @@ struct AboutScreen: View {
 
 struct NowPlayingScreen: View {
     @EnvironmentObject var player: Player
+    @EnvironmentObject var library: Library
     @State private var artwork: NSImage?
 
     var body: some View {
@@ -702,7 +703,7 @@ struct NowPlayingScreen: View {
                 .padding(.top, 5)
                 .padding(.bottom, 8)
             }
-            .task(id: track.id) {
+            .task(id: "\(track.id)#\(library.artworkVersion)") {
                 artwork = await ArtworkLoader.shared.artwork(for: track)
             }
         } else {

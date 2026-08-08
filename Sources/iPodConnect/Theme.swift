@@ -101,6 +101,23 @@ enum Theme {
     static let emptyGlyph = Color.dynamic(0xAAB2BC, 0x4A4A4E)
     static let emptyTitle = Color.dynamic(0x4A4A4A, 0xE5E5E7)
 
+    // Cover Flow — the dark gradient stage, in both appearances
+    static let coverFlowTop = Color.dynamic(0x6E7683, 0x2A2C31)
+    static let coverFlowBottom = Color.dynamic(0x2B2F36, 0x121316)
+    static let coverFlowText = Color.dynamic(0xFFFFFF, 0xF2F2F5)
+    static let coverFlowSubText = Color.dynamic(0xD2D6DC, 0xA0A0A6)
+    static let coverFlowTrack = Color.dynamic(0x1E2126, 0x0B0C0E)
+    static let coverFlowKnobTop = Color.dynamic(0xFAFAFA, 0x8A8A90)
+    static let coverFlowKnobBottom = Color.dynamic(0xC2C2C4, 0x5E5E64)
+
+    // Segmented view switcher
+    static let segmentTop = Color.dynamic(0xFCFCFC, 0x4A4A4E)
+    static let segmentBottom = Color.dynamic(0xD8D8D8, 0x37373B)
+    static let segmentActiveTop = Color.dynamic(0x9FB4CC, 0x0A84FF)
+    static let segmentActiveBottom = Color.dynamic(0x7E97B6, 0x0060D8)
+    static let segmentBorder = Color.dynamic(0x9A9A9A, 0x1F1F22)
+    static let segmentGlyph = Color.dynamic(0x4A4A4A, 0xD8D8DC)
+
     // Gradients — computed so they resolve per render, in either appearance.
     static var toolbarGradient: LinearGradient {
         LinearGradient(colors: [toolbarTop, toolbarBottom], startPoint: .top, endPoint: .bottom)

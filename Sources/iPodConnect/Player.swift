@@ -191,6 +191,16 @@ final class ArtworkLoader: @unchecked Sendable {
         if missing.object(forKey: key) != nil { return nil }
 
         let image: NSImage? = await Task.detached(priority: .utility) {
+            // Artwork the user supplied by hand wins over anything embedded.
+            let store = ArtworkStore.shared
+            if let img = store.image(forKey: ArtworkStore.trackKey(path: track.path)) {
+                return img
+            }
+            let albumArtist = track.albumArtist.isEmpty ? track.artist : track.albumArtist
+            if let img = store.image(forKey: ArtworkStore.albumKey(artist: albumArtist, album: track.album)) {
+                return img
+            }
+
             if track.format == "FLAC", let data = FLACParser.artwork(url: track.url), let img = NSImage(data: data) {
                 return img
             }
@@ -215,5 +225,15 @@ final class ArtworkLoader: @unchecked Sendable {
         if let image { cache.setObject(image, forKey: key) }
         else { missing.setObject(1, forKey: key) }
         return image
+    }
+
+    /// Called after the user adds artwork, so the affected tracks are looked
+    /// up again instead of returning the cached "no artwork" answer.
+    func invalidate(paths: [String]) {
+        for path in paths {
+            let key = path as NSString
+            cache.removeObject(forKey: key)
+            missing.removeObject(forKey: key)
+        }
     }
 }

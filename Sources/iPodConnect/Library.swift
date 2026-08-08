@@ -3,7 +3,11 @@ import AVFoundation
 import AppKit
 
 enum LibrarySource {
-    case music, artists, albums
+    case music, artists, albums, rockbox
+}
+
+enum MusicViewMode {
+    case list, coverFlow
 }
 
 struct AlbumGroup: Identifiable {
@@ -28,6 +32,10 @@ final class Library: ObservableObject {
     @Published var source: LibrarySource = .music
     @Published var selectedArtist: String?
     @Published var ipodMode = false
+    @Published var musicViewMode: MusicViewMode = .list
+    @Published var showMissingArtwork = false
+    /// Bumped whenever the user adds artwork, so art views reload.
+    @Published var artworkVersion = 0
 
     nonisolated static let audioExtensions: Set<String> = ["flac", "mp3", "m4a", "aac", "wav", "aiff", "aif", "ogg", "opus"]
 
@@ -71,6 +79,10 @@ final class Library: ObservableObject {
             if let o = albumOrder(a, b) { return o }
         case .genre:
             let r = a.genre.localizedStandardCompare(b.genre)
+            if r != .orderedSame { return r == .orderedAscending }
+            if let o = albumOrder(a, b) { return o }
+        case .kind:
+            let r = a.format.localizedStandardCompare(b.format)
             if r != .orderedSame { return r == .orderedAscending }
             if let o = albumOrder(a, b) { return o }
         }

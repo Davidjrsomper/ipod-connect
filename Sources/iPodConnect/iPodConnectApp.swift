@@ -6,6 +6,7 @@ struct iPodConnectApp: App {
     @StateObject private var library = Library()
     @StateObject private var player = Player()
     @StateObject private var updaterViewModel = UpdaterViewModel()
+    @StateObject private var rockbox = RockboxManager()
     @AppStorage("darkMode") private var darkMode = false
 
     init() {
@@ -44,6 +45,7 @@ struct iPodConnectApp: App {
             ContentView()
                 .environmentObject(library)
                 .environmentObject(player)
+                .environmentObject(rockbox)
                 .onAppear {
                     library.load()
                     library.rescan()
@@ -60,6 +62,9 @@ struct iPodConnectApp: App {
                 Button("Rescan Library") { library.rescan() }
                     .keyboardShortcut("r")
                     .disabled(library.folderPath == nil)
+                Divider()
+                Button("Add Missing Album Art…") { library.showMissingArtwork = true }
+                    .disabled(library.tracks.isEmpty)
             }
             CommandGroup(after: .toolbar) {
                 Toggle("Dark Mode", isOn: $darkMode)

@@ -7,18 +7,14 @@ struct SidebarView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("LIBRARY")
-                .font(.system(size: 11, weight: .bold))
-                .kerning(0.5)
-                .foregroundStyle(Theme.sidebarHeaderText)
-                .shadow(color: .white.opacity(0.8), radius: 0, y: 1)
-                .padding(.leading, 12)
-                .padding(.top, 12)
-                .padding(.bottom, 4)
+            sectionHeader("LIBRARY", isFirst: true)
 
             sourceRow("Music", icon: "music.note", source: .music)
             sourceRow("Artists", icon: "music.mic", source: .artists)
             sourceRow("Albums", icon: "square.stack", source: .albums)
+
+            sectionHeader("ROCKBOX")
+            sourceRow("Rockbox", icon: "gearshape.2", source: .rockbox)
 
             Spacer()
 
@@ -27,14 +23,24 @@ struct SidebarView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Theme.sidebarBG)
         .overlay(alignment: .trailing) { Theme.sidebarBorder.frame(width: 1) }
-        .onChange(of: player.current) { _, track in
+        .task(id: "\(player.current?.id ?? "")#\(library.artworkVersion)") {
             artwork = nil
-            guard let track else { return }
-            Task {
-                let image = await ArtworkLoader.shared.artwork(for: track)
-                if player.current == track { artwork = image }
-            }
+            guard let track = player.current else { return }
+            let image = await ArtworkLoader.shared.artwork(for: track)
+            if player.current == track { artwork = image }
         }
+    }
+
+    @ViewBuilder
+    private func sectionHeader(_ title: String, isFirst: Bool = false) -> some View {
+        Text(title)
+            .font(.system(size: 11, weight: .bold))
+            .kerning(0.5)
+            .foregroundStyle(Theme.sidebarHeaderText)
+            .shadow(color: .white.opacity(0.8), radius: 0, y: 1)
+            .padding(.leading, 12)
+            .padding(.top, isFirst ? 12 : 14)
+            .padding(.bottom, 4)
     }
 
     @ViewBuilder

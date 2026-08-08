@@ -64,6 +64,10 @@ struct ToolbarView: View {
 
             Spacer(minLength: 8)
 
+            if library.source == .music {
+                ViewModeSwitcher()
+            }
+
             SearchField()
                 .frame(width: 170)
 
@@ -185,6 +189,52 @@ struct ProgressRow: View {
     }
 }
 
+/// The iTunes view switcher: list vs. Cover Flow, as a small capsule of
+/// glossy segments.
+struct ViewModeSwitcher: View {
+    @EnvironmentObject var library: Library
+
+    var body: some View {
+        HStack(spacing: 0) {
+            segment(icon: "list.bullet", mode: .list, help: "Song list")
+            Theme.segmentBorder.frame(width: 1)
+            segment(icon: "square.stack.3d.down.right.fill", mode: .coverFlow, help: "Cover Flow")
+        }
+        .frame(height: 21)
+        .background(
+            RoundedRectangle(cornerRadius: 4)
+                .fill(LinearGradient(
+                    colors: [Theme.segmentTop, Theme.segmentBottom],
+                    startPoint: .top, endPoint: .bottom))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 4)
+                .strokeBorder(Theme.segmentBorder, lineWidth: 1)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 4))
+        .shadow(color: .black.opacity(0.12), radius: 1, y: 1)
+    }
+
+    @ViewBuilder
+    private func segment(icon: String, mode: MusicViewMode, help: String) -> some View {
+        let isActive = library.musicViewMode == mode
+        Image(systemName: icon)
+            .font(.system(size: 10, weight: .semibold))
+            .foregroundStyle(isActive ? .white : Theme.segmentGlyph)
+            .frame(width: 30, height: 21)
+            .background {
+                if isActive {
+                    LinearGradient(
+                        colors: [Theme.segmentActiveTop, Theme.segmentActiveBottom],
+                        startPoint: .top, endPoint: .bottom)
+                }
+            }
+            .contentShape(Rectangle())
+            .onTapGesture { library.musicViewMode = mode }
+            .help(help)
+    }
+}
+
 struct SearchField: View {
     @EnvironmentObject var library: Library
 
@@ -193,6 +243,7 @@ struct SearchField: View {
         case .music: return "Search"
         case .artists: return "Find in Artists"
         case .albums: return "Find in Albums"
+        case .rockbox: return "Search"
         }
     }
 

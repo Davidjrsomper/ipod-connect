@@ -21,6 +21,13 @@ cp .build/release/iPodConnect "$APP/Contents/MacOS/iPodConnect"
 cp Resources/Info.plist "$APP/Contents/Info.plist"
 ditto "$FRAMEWORK_SRC" "$APP/Contents/Frameworks/Sparkle.framework"
 
+# ipodpatcher: a separate GPL executable, launched as a subprocess for the
+# Rockbox bootloader step. Never linked into the app binary — see
+# Vendor/ipodpatcher/README.md.
+Vendor/ipodpatcher/build.sh >/dev/null
+cp build/ipodpatcher "$APP/Contents/Resources/ipodpatcher"
+chmod +x "$APP/Contents/Resources/ipodpatcher"
+
 # The executable's Sparkle reference is @rpath-relative; point that rpath at
 # the standard app-bundle Frameworks location.
 install_name_tool -add_rpath "@executable_path/../Frameworks" "$APP/Contents/MacOS/iPodConnect"

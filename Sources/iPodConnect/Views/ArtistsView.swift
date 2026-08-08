@@ -200,6 +200,7 @@ struct AlbumTrackRow: View {
 }
 
 struct AlbumArtView: View {
+    @EnvironmentObject var library: Library
     let track: Track?
     var size: CGFloat = 110
     @State private var image: NSImage?
@@ -223,7 +224,7 @@ struct AlbumArtView: View {
         .clipped()
         .border(Theme.artBorder, width: 1)
         .shadow(color: .black.opacity(0.18), radius: 2, y: 1)
-        .task(id: track?.id) {
+        .task(id: "\(track?.id ?? "")#\(library.artworkVersion)") {
             image = nil
             if let track {
                 image = await ArtworkLoader.shared.artwork(for: track)

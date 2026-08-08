@@ -29,7 +29,7 @@ struct Track: Identifiable, Codable, Hashable {
 }
 
 enum SortField: String, Codable {
-    case name, time, artist, album, genre
+    case name, time, artist, album, genre, kind
 }
 
 enum RepeatMode {
