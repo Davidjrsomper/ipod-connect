@@ -5,6 +5,7 @@ import AVFoundation
 struct FidelityApp: App {
     @StateObject private var library = Library()
     @StateObject private var player = Player()
+    @StateObject private var updaterViewModel = UpdaterViewModel()
     @AppStorage("darkMode") private var darkMode = false
 
     init() {
@@ -50,6 +51,9 @@ struct FidelityApp: App {
         }
         .windowStyle(.hiddenTitleBar)
         .commands {
+            CommandGroup(after: .appInfo) {
+                CheckForUpdatesView(updater: updaterViewModel.controller.updater)
+            }
             CommandGroup(replacing: .newItem) {
                 Button("Choose Music Folder…") { library.chooseFolder() }
                     .keyboardShortcut("o")
