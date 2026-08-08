@@ -3,17 +3,17 @@
     <channel>
         <title>iPod Connect</title>
         <item>
-            <title>1.0.2</title>
-            <pubDate>Sat, 08 Aug 2026 23:20:52 +0300</pubDate>
-            <sparkle:version>14</sparkle:version>
-            <sparkle:shortVersionString>1.0.2</sparkle:shortVersionString>
+            <title>1.0.3</title>
+            <pubDate>Sat, 08 Aug 2026 23:24:41 +0300</pubDate>
+            <sparkle:version>15</sparkle:version>
+            <sparkle:shortVersionString>1.0.3</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description><![CDATA[<h3>iPodConnect 1.0.2</h3>
+            <description><![CDATA[<h3>iPodConnect 1.0.3</h3>
 <ul>
   <li>See the commit log for what changed.</li>
 </ul>
 ]]></description>
-            <enclosure url="https://github.com/Davidjrsomper/ipod-connect/releases/download/v1.0.2/iPodConnect-1.0.2.zip" length="3032820" type="application/octet-stream" sparkle:edSignature="q8r96UJWGvT5YF+cLNTVMhGRpGGhwcQSH/sufvkSqV/dPS6fSqoPw97m2479D3fi3X3YvRgERGvNQMo5phHZAw=="/>
+            <enclosure url="https://github.com/Davidjrsomper/ipod-connect/releases/download/v1.0.3/iPodConnect-1.0.3.zip" length="3032814" type="application/octet-stream" sparkle:edSignature="N6+Yh4auTzcw0NGuetaquxTBfCsn82c/xirw+1PwZT8Dk5s4DXMDh7LAQMp2zHiXiQHjnhN+H7Q1HFatcHleBw=="/>
         </item>
     </channel>
 </rss>
