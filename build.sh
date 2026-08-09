@@ -36,6 +36,7 @@ else
   cp .build/release/iPodConnect "$APP/Contents/MacOS/iPodConnect"
 fi
 cp Resources/Info.plist "$APP/Contents/Info.plist"
+cp Resources/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
 ditto "$FRAMEWORK_SRC" "$APP/Contents/Frameworks/Sparkle.framework"
 
 # ipodpatcher: a separate GPL executable, launched as a subprocess for the

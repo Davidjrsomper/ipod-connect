@@ -6,6 +6,10 @@
 	<string>iPod Connect</string>
 	<key>CFBundleExecutable</key>
 	<string>iPodConnect</string>
+	<key>CFBundleIconFile</key>
+	<string>AppIcon</string>
+	<key>CFBundleIconName</key>
+	<string>AppIcon</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.davidsomper.ipodconnect</string>
 	<key>CFBundleName</key>
