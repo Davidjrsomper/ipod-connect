@@ -173,8 +173,13 @@ enum RockboxCatalog {
 
     /// Both install routes fetch their bootloader from the same place; only
     /// the way it gets onto the device differs.
+    ///
+    /// The nano 2G is the exception: its image is encrypted and published
+    /// with a `.ipodx` extension, so building the URL blindly from the target
+    /// name 404s for that one model.
     static func bootloaderURL(for target: RockboxTarget) -> URL? {
-        URL(string: "\(downloadBase)/bootloader/ipod/bootloader-\(target.id).ipod")
+        let ext = target.id == "ipodnano2g" ? "ipodx" : "ipod"
+        return URL(string: "\(downloadBase)/bootloader/ipod/bootloader-\(target.id).\(ext)")
     }
 
     /// Downloads to a temporary file, reporting 0…1 progress.
