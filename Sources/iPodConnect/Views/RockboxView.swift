@@ -25,18 +25,34 @@ struct RockboxView: View {
             isPresented: $showBootloaderConfirm,
             titleVisibility: .visible
         ) {
-            Button("Back Up Firmware and Install", role: .destructive) {
-                Task { await rockbox.installBootloader() }
+            if rockbox.activeTarget.bootloader == .dfu {
+                Button("Continue", role: .destructive) {
+                    Task { await rockbox.installClassicBootloader() }
+                }
+            } else {
+                Button("Back Up Firmware and Install", role: .destructive) {
+                    Task { await rockbox.installBootloader() }
+                }
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("""
-            This writes to your iPod's firmware partition and needs your administrator password.
+            if rockbox.activeTarget.bootloader == .dfu {
+                Text("""
+                This sends new boot firmware to your iPod over USB.
 
-            Your existing firmware is backed up first, and the install is abandoned if that backup fails. A wrong or interrupted write can leave the iPod unbootable until you restore it in iTunes/Finder.
+                You'll be asked to hold MENU and SELECT together to put the iPod into DFU mode. No administrator password is needed.
 
-            Do not unplug the iPod until this finishes.
-            """)
+                If anything goes wrong the iPod stays in DFU mode, and you can always restore it in Finder — so this is recoverable, but don't unplug it while it's writing.
+                """)
+            } else {
+                Text("""
+                This writes to your iPod's firmware partition and needs your administrator password.
+
+                Your existing firmware is backed up first, and the install is abandoned if that backup fails. A wrong or interrupted write can leave the iPod unbootable until you restore it in iTunes/Finder.
+
+                Do not unplug the iPod until this finishes.
+                """)
+            }
         }
     }
 
@@ -222,20 +238,16 @@ struct DeviceBar: View {
                 .controlSize(.small)
                 .disabled(rockbox.isBusy)
 
-                if rockbox.activeTarget.bootloader == .ipodpatcher {
-                    Button("Install Bootloader…") { showBootloaderConfirm = true }
-                        .controlSize(.small)
-                        .disabled(rockbox.isBusy)
-                } else {
-                    Link("Bootloader instructions for Classic",
-                         destination: URL(string: "https://files.freemyipod.org/~user890104/bootloader-ipodclassic.html")!)
-                        .font(.system(size: 11))
-                }
+                Button("Install Bootloader…") { showBootloaderConfirm = true }
+                    .controlSize(.small)
+                    .disabled(rockbox.isBusy)
                 Spacer()
             }
 
-            if rockbox.activeTarget.bootloader == .dfu {
-                Text("The iPod Classic's bootloader must be installed over USB with the device in DFU mode — that step can't be automated here.")
+            if rockbox.waitingForDFU {
+                DFUPrompt()
+            } else if rockbox.activeTarget.bootloader == .dfu {
+                Text("The Classic installs its bootloader over USB. You'll be asked to hold MENU and SELECT when the time comes — no password needed.")
                     .font(.system(size: 10))
                     .foregroundStyle(Theme.secondaryText)
                     .fixedSize(horizontal: false, vertical: true)
@@ -366,5 +378,29 @@ struct ThemeCell: View {
         .help(theme.about.isEmpty ? theme.name : theme.about)
         .onHover { isHovering = $0 }
         .task { await rockbox.loadPreview(for: theme) }
+    }
+}
+
+
+/// Shown while the app waits for a Classic to appear in DFU mode.
+struct DFUPrompt: View {
+    var body: some View {
+        HStack(alignment: .top, spacing: 10) {
+            ProgressView().controlSize(.small).scaleEffect(0.7)
+            VStack(alignment: .leading, spacing: 3) {
+                Text("Hold MENU and SELECT together now")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(Theme.listText)
+                Text("Keep holding — about 8 seconds. The screen goes blank and stays blank; that's DFU mode, and the install starts on its own. Let go once this message disappears.")
+                    .font(.system(size: 11))
+                    .foregroundStyle(Theme.secondaryText)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(10)
+        .background(Theme.rowAlt)
+        .overlay(RoundedRectangle(cornerRadius: 5).strokeBorder(Theme.accent.opacity(0.4), lineWidth: 1))
+        .clipShape(RoundedRectangle(cornerRadius: 5))
     }
 }

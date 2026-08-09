@@ -46,6 +46,13 @@ Vendor/ipodpatcher/build.sh >/dev/null
 cp build/ipodpatcher "$APP/Contents/Resources/ipodpatcher"
 chmod +x "$APP/Contents/Resources/ipodpatcher"
 
+# mks5lboot: the DFU installer for iPod Classic 6G/7G. Also GPL, also a
+# separate executable. Uses a native IOKit USB backend, so no libusb and no
+# root required.
+Vendor/mks5lboot/build.sh >/dev/null
+cp build/mks5lboot "$APP/Contents/Resources/mks5lboot"
+chmod +x "$APP/Contents/Resources/mks5lboot"
+
 # The executable's Sparkle reference is @rpath-relative; point that rpath at
 # the standard app-bundle Frameworks location.
 install_name_tool -add_rpath "@executable_path/../Frameworks" "$APP/Contents/MacOS/iPodConnect"

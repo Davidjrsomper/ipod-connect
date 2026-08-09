@@ -21,6 +21,8 @@ final class RockboxManager: ObservableObject {
     @Published private(set) var progress: Double = 0
     @Published var statusMessage: String?
     @Published var errorMessage: String?
+    /// True while we're waiting for the user to put a Classic into DFU mode.
+    @Published private(set) var waitingForDFU = false
 
     private var previewCache: [String: NSImage] = [:]
 
@@ -177,6 +179,47 @@ final class RockboxManager: ObservableObject {
                 device: disk, bootloader: file, deviceLabel: device.volumeName)
             try? FileManager.default.removeItem(at: file)
             return "Bootloader installed. Firmware backed up to \(backup.lastPathComponent)."
+        }
+    }
+
+    /// iPod Classic 6G/7G. Downloads the bootloader, waits for the user to
+    /// hold the button combo, then writes it over USB. No admin password:
+    /// mks5lboot reaches the device through IOKit.
+    func installClassicBootloader() async {
+        let target = activeTarget
+        guard target.bootloader == .dfu, let url = RockboxCatalog.bootloaderURL(for: target) else {
+            errorMessage = "\(target.name) doesn't use the DFU installer."
+            return
+        }
+
+        await run("Installing the bootloader on your \(target.name)…") {
+            let file = try await RockboxCatalog.download(url) { fraction in
+                Task { @MainActor in self.progress = fraction * 0.3 }
+            }
+            defer { try? FileManager.default.removeItem(at: file) }
+
+            await MainActor.run {
+                self.waitingForDFU = true
+                self.progress = 0.35
+            }
+            defer { Task { @MainActor in self.waitingForDFU = false } }
+
+            // Poll for the device appearing in DFU mode. Two minutes is
+            // generous: the button combo often takes a couple of attempts.
+            let deadline = Date().addingTimeInterval(120)
+            var found = false
+            while Date() < deadline {
+                if RockboxInstaller.isIPodInDFUMode() { found = true; break }
+                try? await Task.sleep(for: .seconds(1))
+            }
+            guard found else {
+                throw RockboxError.patcherFailed(
+                    "Timed out waiting for the iPod to enter DFU mode. Hold MENU and SELECT together until the screen goes blank, and keep holding.")
+            }
+
+            await MainActor.run { self.progress = 0.7 }
+            try RockboxInstaller.installClassicBootloader(bootloader: file)
+            return "Bootloader installed. Disconnect the iPod and it should start into Rockbox."
         }
     }
 

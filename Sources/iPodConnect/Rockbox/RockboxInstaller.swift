@@ -174,4 +174,49 @@ enum RockboxInstaller {
     static func removeBootloader(device: String) throws {
         try runPatcherAsAdmin(arguments: [device, "-d"])
     }
+
+    // MARK: - iPod Classic 6G/7G (USB DFU)
+    //
+    // The Classic doesn't take a firmware-partition write like the older
+    // iPods; its bootloader goes over USB while the device sits in DFU mode.
+    // mks5lboot talks to it through IOKit, so unlike ipodpatcher this needs
+    // neither libusb nor an administrator password.
+
+    static var dfuToolURL: URL? {
+        Bundle.main.url(forResource: "mks5lboot", withExtension: nil)
+    }
+
+    @discardableResult
+    static func runDFUTool(_ arguments: [String]) throws -> (status: Int32, output: String) {
+        guard let tool = dfuToolURL else { throw RockboxError.patcherMissing }
+        let process = Process()
+        process.executableURL = tool
+        process.arguments = arguments
+        let pipe = Pipe()
+        process.standardOutput = pipe
+        process.standardError = pipe
+        try process.run()
+        let data = pipe.fileHandleForReading.readDataToEndOfFile()
+        process.waitUntilExit()
+        return (process.terminationStatus, String(data: data, encoding: .utf8) ?? "")
+    }
+
+    /// True once the iPod has appeared on USB in DFU mode.
+    static func isIPodInDFUMode() -> Bool {
+        guard let result = try? runDFUTool(["--dfuscan"]) else { return false }
+        // The tool prints "no DFU devices found" when nothing is attached.
+        return !result.output.localizedCaseInsensitiveContains("no DFU devices found")
+            && !result.output.localizedCaseInsensitiveContains("DFU device not found")
+    }
+
+    /// Writes the bootloader to a Classic already sitting in DFU mode.
+    static func installClassicBootloader(bootloader: URL) throws {
+        let result = try runDFUTool(["--bl-inst", bootloader.path])
+        let ok = result.status == 0
+            && !result.output.localizedCaseInsensitiveContains("[ERR]")
+        guard ok else {
+            throw RockboxError.patcherFailed(
+                result.output.trimmingCharacters(in: .whitespacesAndNewlines))
+        }
+    }
 }

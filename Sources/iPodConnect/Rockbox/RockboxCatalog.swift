@@ -171,9 +171,10 @@ enum RockboxCatalog {
         URL(string: "\(downloadBase)/release/\(release)/rockbox-\(target.id)-\(release).zip")
     }
 
+    /// Both install routes fetch their bootloader from the same place; only
+    /// the way it gets onto the device differs.
     static func bootloaderURL(for target: RockboxTarget) -> URL? {
-        guard target.bootloader == .ipodpatcher else { return nil }
-        return URL(string: "\(downloadBase)/bootloader/ipod/bootloader-\(target.id).ipod")
+        URL(string: "\(downloadBase)/bootloader/ipod/bootloader-\(target.id).ipod")
     }
 
     /// Downloads to a temporary file, reporting 0…1 progress.
