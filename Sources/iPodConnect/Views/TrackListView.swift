@@ -21,7 +21,6 @@ struct ColumnWidths {
 struct TrackListView: View {
     @EnvironmentObject var library: Library
     @EnvironmentObject var player: Player
-    @FocusState private var listFocused: Bool
 
     var body: some View {
         GeometryReader { geo in
@@ -43,19 +42,15 @@ struct TrackListView: View {
                                 .id(track.id)
                                 .onTapGesture(count: 2) {
                                     library.selectedTrackID = track.id
-                                    listFocused = true
                                     player.play(track: track, in: visible)
                                 }
                                 .simultaneousGesture(TapGesture().onEnded {
                                     library.selectedTrackID = track.id
-                                    listFocused = true
                                 })
                             }
                         }
                     }
                     .background(Theme.contentBG)
-                    .focusable()
-                    .focused($listFocused)
                     .background(ListKeyCatcher { key in
                         switch key {
                         case .space:
