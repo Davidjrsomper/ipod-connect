@@ -3,17 +3,17 @@
     <channel>
         <title>iPod Connect</title>
         <item>
-            <title>1.3.1</title>
-            <pubDate>Sun, 09 Aug 2026 23:41:30 +0300</pubDate>
-            <sparkle:version>27</sparkle:version>
-            <sparkle:shortVersionString>1.3.1</sparkle:shortVersionString>
+            <title>1.4.0</title>
+            <pubDate>Sun, 09 Aug 2026 23:48:58 +0300</pubDate>
+            <sparkle:version>29</sparkle:version>
+            <sparkle:shortVersionString>1.4.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>12.0</sparkle:minimumSystemVersion>
-            <description><![CDATA[<h3>iPodConnect 1.3.1</h3>
+            <description><![CDATA[<h3>iPodConnect 1.4.0</h3>
 <ul>
   <li>See the commit log for what changed.</li>
 </ul>
 ]]></description>
-            <enclosure url="https://github.com/Davidjrsomper/ipod-connect/releases/download/v1.3.1/iPodConnect-1.3.1.zip" length="4126333" type="application/octet-stream" sparkle:edSignature="Fo/FTgIimysjU4XororYJTbipLdSt8IRP/NcpEMjcUOENtW7wLw6TcwD9zumCunwY6fhjSizgGkb4+Mbtx32Dg=="/>
+            <enclosure url="https://github.com/Davidjrsomper/ipod-connect/releases/download/v1.4.0/iPodConnect-1.4.0.zip" length="4138338" type="application/octet-stream" sparkle:edSignature="wU26d0LV0935RsCYrQULB2h/CQkjXtLfQ6Ik3Z7/CGjqdGdYkJu8HgA668s2ooU9YV0vEpa0TYmEQLilClytAg=="/>
         </item>
         <item>
             <title>1.2.0</title>
@@ -26,7 +26,7 @@
   <li>See the commit log for what changed.</li>
 </ul>
 ]]></description>
-            <enclosure url="https://github.com/Davidjrsomper/ipod-connect/releases/download/v1.3.1/iPodConnect-1.2.0.zip" length="4113116" type="application/octet-stream" sparkle:edSignature="MCXZeGrb5b8uWNR9Tc2dYXreA035QEYjVJ6G2k9qGAquhpbqHfLoM7o0QGZonbtwWSmqusYjx6aUYgaE/m4TCQ=="/>
+            <enclosure url="https://github.com/Davidjrsomper/ipod-connect/releases/download/v1.4.0/iPodConnect-1.2.0.zip" length="4113116" type="application/octet-stream" sparkle:edSignature="MCXZeGrb5b8uWNR9Tc2dYXreA035QEYjVJ6G2k9qGAquhpbqHfLoM7o0QGZonbtwWSmqusYjx6aUYgaE/m4TCQ=="/>
         </item>
     </channel>
 </rss>
