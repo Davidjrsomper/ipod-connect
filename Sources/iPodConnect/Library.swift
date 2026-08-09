@@ -53,6 +53,8 @@ final class Library: ObservableObject {
     nonisolated static let audioExtensions: Set<String> = ["flac", "mp3", "m4a", "aac", "wav", "aiff", "aif", "ogg", "opus"]
 
     private var scanTask: Task<Void, Never>?
+    private var watcher: FolderWatcher?
+    private var pendingRescan: Task<Void, Never>?
 
     // MARK: - Derived state
 
@@ -229,6 +231,7 @@ final class Library: ObservableObject {
         panel.prompt = "Choose"
         panel.message = "Choose your music folder. iPod Connect will scan it for FLAC and other audio files."
         if panel.runModal() == .OK, let url = panel.url {
+            stopWatching()
             folderPath = url.path
             rescan()
         }
@@ -238,6 +241,36 @@ final class Library: ObservableObject {
         guard let folderPath else { return }
         scanTask?.cancel()
         scanTask = Task { await scan(folder: URL(fileURLWithPath: folderPath)) }
+        startWatching()
+    }
+
+    /// Watches the music folder so albums added in the Finder show up on their
+    /// own. Copying an album fires many events, so changes are debounced —
+    /// otherwise a single drag would kick off a dozen overlapping scans.
+    private func startWatching() {
+        guard let folderPath, watcher == nil else { return }
+        watcher = FolderWatcher(path: folderPath) { [weak self] in
+            Task { @MainActor in self?.scheduleRescan() }
+        }
+    }
+
+    private func scheduleRescan() {
+        pendingRescan?.cancel()
+        pendingRescan = Task { @MainActor in
+            // Long enough for a copy to finish before we read the files.
+            try? await Task.sleep(nanoseconds: 3_000_000_000)
+            guard !Task.isCancelled, let folderPath else { return }
+            scanTask?.cancel()
+            scanTask = Task { await scan(folder: URL(fileURLWithPath: folderPath)) }
+        }
+    }
+
+    /// Called when the user picks a different folder, so we stop watching the
+    /// old one.
+    private func stopWatching() {
+        watcher?.stop()
+        watcher = nil
+        pendingRescan?.cancel()
     }
 
     private func scan(folder: URL) async {
