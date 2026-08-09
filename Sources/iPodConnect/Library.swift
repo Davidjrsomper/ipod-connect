@@ -37,6 +37,19 @@ final class Library: ObservableObject {
     /// Bumped whenever the user adds artwork, so art views reload.
     @Published var artworkVersion = 0
 
+    /// The row the user has selected. Lives here rather than inside the list
+    /// view so menu commands (Get Info, Reveal in Finder) can act on it.
+    @Published var selectedTrackID: String?
+    /// Incremented to ask the visible list to scroll to the playing track (⌘L).
+    @Published var goToCurrentToken = 0
+    /// Incremented to move keyboard focus into the search field (⌘F).
+    @Published var focusSearchToken = 0
+
+    var selectedTrack: Track? {
+        guard let id = selectedTrackID else { return nil }
+        return tracks.first { $0.id == id }
+    }
+
     nonisolated static let audioExtensions: Set<String> = ["flac", "mp3", "m4a", "aac", "wav", "aiff", "aif", "ogg", "opus"]
 
     private var scanTask: Task<Void, Never>?

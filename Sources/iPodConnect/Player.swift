@@ -70,6 +70,48 @@ final class Player: NSObject, ObservableObject, AVAudioPlayerDelegate {
         updateNowPlaying()
     }
 
+    /// Scrub relative to the current position — iTunes' ⌥⌘← / ⌥⌘→.
+    func seek(by seconds: Double) {
+        guard audioPlayer != nil else { return }
+        seek(to: elapsed + seconds)
+    }
+
+    /// Remembers the level so unmuting restores it rather than guessing.
+    private var volumeBeforeMute: Double?
+
+    var isMuted: Bool { volumeBeforeMute != nil }
+
+    func toggleMute() {
+        if let previous = volumeBeforeMute {
+            volume = previous
+            volumeBeforeMute = nil
+        } else {
+            volumeBeforeMute = volume
+            volume = 0
+        }
+    }
+
+    /// Jumps to the first track of the next (or previous) album in the queue,
+    /// matching iTunes' album-skip shortcuts.
+    func skipAlbum(_ direction: Int) {
+        guard let current, let index = queue.firstIndex(of: current) else { return }
+        let album = current.album
+
+        if direction > 0 {
+            guard let next = queue[(index + 1)...].first(where: { $0.album != album }) else { return }
+            start(next)
+        } else {
+            // Back to this album's first track; a second press goes further back.
+            let head = queue[..<index].lastIndex { $0.album != album }
+            guard let boundary = head else {
+                if let first = queue.first(where: { $0.album == album }) { start(first) }
+                return
+            }
+            let previousAlbum = queue[boundary].album
+            if let first = queue.first(where: { $0.album == previousAlbum }) { start(first) }
+        }
+    }
+
     func stop() {
         audioPlayer?.stop()
         audioPlayer = nil

@@ -62,13 +62,29 @@ struct iPodConnectApp: App {
                 Button("Choose Music Folder…") { library.chooseFolder() }
                     .keyboardShortcut("o")
                 Button("Rescan Library") { library.rescan() }
-                    .keyboardShortcut("r")
+                    .keyboardShortcut("r", modifiers: [.command, .shift])
                     .disabled(library.folderPath == nil)
                 Divider()
+                // iTunes used ⌘R for "Show in Finder", so rescan moved aside.
+                Button("Show in Finder") {
+                    if let track = library.selectedTrack {
+                        NSWorkspace.shared.activateFileViewerSelecting([track.url])
+                    }
+                }
+                .keyboardShortcut("r")
+                .disabled(library.selectedTrack == nil)
                 Button("Add Missing Album Art…") { library.showMissingArtwork = true }
                     .disabled(library.tracks.isEmpty)
             }
+            CommandGroup(after: .pasteboard) {
+                Button("Find") { library.focusSearchToken += 1 }
+                    .keyboardShortcut("f")
+            }
             CommandGroup(after: .toolbar) {
+                Button("Go to Current Song") { library.goToCurrentToken += 1 }
+                    .keyboardShortcut("l")
+                    .disabled(player.current == nil)
+                Divider()
                 Toggle("Dark Mode", isOn: $darkMode)
                     .keyboardShortcut("d", modifiers: [.command, .shift])
                 Toggle("iPod View", isOn: $library.ipodMode)
@@ -91,10 +107,26 @@ struct iPodConnectApp: App {
                     }
                 }
                 Divider()
+                Button("Next Album") { player.skipAlbum(1) }
+                    .keyboardShortcut(.rightArrow, modifiers: [.command, .shift])
+                    .disabled(player.current == nil)
+                Button("Previous Album") { player.skipAlbum(-1) }
+                    .keyboardShortcut(.leftArrow, modifiers: [.command, .shift])
+                    .disabled(player.current == nil)
+                Divider()
+                Button("Skip Forward 5 Seconds") { player.seek(by: 5) }
+                    .keyboardShortcut(.rightArrow, modifiers: [.command, .option])
+                    .disabled(player.current == nil)
+                Button("Skip Back 5 Seconds") { player.seek(by: -5) }
+                    .keyboardShortcut(.leftArrow, modifiers: [.command, .option])
+                    .disabled(player.current == nil)
+                Divider()
                 Button("Volume Up") { player.volume = min(1, player.volume + 0.1) }
                     .keyboardShortcut(.upArrow, modifiers: .command)
                 Button("Volume Down") { player.volume = max(0, player.volume - 0.1) }
                     .keyboardShortcut(.downArrow, modifiers: .command)
+                Button(player.isMuted ? "Unmute" : "Mute") { player.toggleMute() }
+                    .keyboardShortcut(.downArrow, modifiers: [.command, .option])
             }
         }
     }

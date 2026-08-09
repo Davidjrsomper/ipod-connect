@@ -237,6 +237,7 @@ struct ViewModeSwitcher: View {
 
 struct SearchField: View {
     @EnvironmentObject var library: Library
+    @FocusState private var isFocused: Bool
 
     private var searchPlaceholder: String {
         switch library.source {
@@ -256,6 +257,10 @@ struct SearchField: View {
                 .textFieldStyle(.plain)
                 .font(.system(size: 11))
                 .foregroundStyle(Theme.listText)
+                .focused($isFocused)
+                .onChange(of: library.focusSearchToken) { _, _ in
+                    isFocused = true   // ⌘F
+                }
             if !library.searchText.isEmpty {
                 Button {
                     library.searchText = ""

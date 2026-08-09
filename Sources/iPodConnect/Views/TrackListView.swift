@@ -21,7 +21,6 @@ struct ColumnWidths {
 struct TrackListView: View {
     @EnvironmentObject var library: Library
     @EnvironmentObject var player: Player
-    @State private var selectedID: String?
     @FocusState private var listFocused: Bool
 
     var body: some View {
@@ -38,17 +37,17 @@ struct TrackListView: View {
                                     track: track,
                                     index: index,
                                     widths: widths,
-                                    isSelected: selectedID == track.id,
+                                    isSelected: library.selectedTrackID == track.id,
                                     isPlaying: player.current == track
                                 )
                                 .id(track.id)
                                 .onTapGesture(count: 2) {
-                                    selectedID = track.id
+                                    library.selectedTrackID = track.id
                                     listFocused = true
                                     player.play(track: track, in: visible)
                                 }
                                 .simultaneousGesture(TapGesture().onEnded {
-                                    selectedID = track.id
+                                    library.selectedTrackID = track.id
                                     listFocused = true
                                 })
                             }
@@ -63,7 +62,8 @@ struct TrackListView: View {
                         return .handled
                     }
                     .onKeyPress(.return) {
-                        if let selectedID, let track = visible.first(where: { $0.id == selectedID }) {
+                        if let selected = library.selectedTrackID,
+                           let track = visible.first(where: { $0.id == selected }) {
                             player.play(track: track, in: visible)
                             return .handled
                         }
@@ -71,6 +71,14 @@ struct TrackListView: View {
                     }
                     .onKeyPress(.downArrow) { moveSelection(1, in: visible, proxy: proxy) }
                     .onKeyPress(.upArrow) { moveSelection(-1, in: visible, proxy: proxy) }
+                    .onChange(of: library.goToCurrentToken) { _, _ in
+                        // ⌘L — reveal the playing track and select it.
+                        guard let playing = player.current else { return }
+                        library.selectedTrackID = playing.id
+                        withAnimation(.easeOut(duration: 0.25)) {
+                            proxy.scrollTo(playing.id, anchor: .center)
+                        }
+                    }
                 }
             }
         }
@@ -78,9 +86,9 @@ struct TrackListView: View {
 
     private func moveSelection(_ delta: Int, in visible: [Track], proxy: ScrollViewProxy) -> KeyPress.Result {
         guard !visible.isEmpty else { return .ignored }
-        let currentIndex = selectedID.flatMap { id in visible.firstIndex(where: { $0.id == id }) }
+        let currentIndex = library.selectedTrackID.flatMap { id in visible.firstIndex(where: { $0.id == id }) }
         let newIndex = max(0, min(visible.count - 1, (currentIndex ?? -1) + delta))
-        selectedID = visible[newIndex].id
+        library.selectedTrackID = visible[newIndex].id
         proxy.scrollTo(visible[newIndex].id)
         return .handled
     }
