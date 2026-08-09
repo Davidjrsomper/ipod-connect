@@ -27,7 +27,7 @@ struct CoverFlowView: View {
                 .frame(minHeight: 120)
         }
         .background(Theme.contentBG)
-        .onChange(of: albums.count) { _, count in
+        .onChange(of: albums.count) { count in
             index = min(index, max(0, count - 1))
         }
     }
@@ -195,7 +195,7 @@ struct CoverFlowView: View {
                     }
                 }
                 .background(Theme.contentBG)
-                .onChange(of: index) { _, newIndex in
+                .onChange(of: index) { newIndex in
                     // Carousel moved on its own — bring the list along.
                     guard !indexDrivenByList else {
                         indexDrivenByList = false

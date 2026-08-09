@@ -33,11 +33,11 @@ struct ContentView: View {
             MissingArtworkView()
                 .environmentObject(library)
         }
-        .onChange(of: library.ipodMode) { _, ipod in
+        .onChange(of: library.ipodMode) { ipod in
             morphWindow(toIPod: ipod)
         }
         .onAppear { applyAppearance() }
-        .onChange(of: darkMode) { _, _ in applyAppearance() }
+        .onChange(of: darkMode) { _ in applyAppearance() }
     }
 
     /// Sets the appearance app-wide so menus, panels and the traffic lights

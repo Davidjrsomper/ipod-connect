@@ -210,7 +210,7 @@ final class RockboxManager: ObservableObject {
             var found = false
             while Date() < deadline {
                 if RockboxInstaller.isIPodInDFUMode() { found = true; break }
-                try? await Task.sleep(for: .seconds(1))
+                try? await Task.sleep(nanoseconds: 1000000000)
             }
             guard found else {
                 throw RockboxError.patcherFailed(

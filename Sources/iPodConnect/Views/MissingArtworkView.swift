@@ -31,7 +31,7 @@ struct MissingArtworkView: View {
         .frame(width: 560, height: 460)
         .background(Theme.contentBG)
         .task { await scan() }
-        .onChange(of: scope) { _, _ in Task { await scan() } }
+        .onChange(of: scope) { _ in Task { await scan() } }
         .alert("Couldn't Add Artwork", isPresented: .constant(errorMessage != nil)) {
             Button("OK") { errorMessage = nil }
         } message: {

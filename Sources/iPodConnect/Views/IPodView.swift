@@ -160,7 +160,7 @@ struct IPodView: View {
         .onReceive(artTimer) { _ in
             Task { await loadPreviewArt(advance: true) }
         }
-        .onChange(of: player.current) { _, _ in
+        .onChange(of: player.current) { _ in
             Task { await loadPreviewArt(advance: false) }
         }
     }
@@ -504,7 +504,7 @@ struct MenuScreen: View {
                     }
                 }
             }
-            .onChange(of: selection) { _, newValue in
+            .onChange(of: selection) { newValue in
                 proxy.scrollTo(newValue)
             }
         }

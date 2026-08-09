@@ -20,7 +20,7 @@ struct AlbumsView: View {
             }
         }
         .background(Theme.contentBG)
-        .onChange(of: library.searchText) { _, _ in
+        .onChange(of: library.searchText) { _ in
             // A filtered-away album shouldn't stay open.
             if let openAlbumID, !albums.contains(where: { $0.id == openAlbumID }) {
                 self.openAlbumID = nil

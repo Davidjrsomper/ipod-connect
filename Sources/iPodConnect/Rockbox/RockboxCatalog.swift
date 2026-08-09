@@ -97,7 +97,7 @@ enum RockboxCatalog {
 
             if status == 429 || status == 503 {
                 if attempt == 0 {
-                    try? await Task.sleep(for: .seconds(3))
+                    try? await Task.sleep(nanoseconds: 3000000000)
                     continue
                 }
                 throw RockboxError.rateLimited

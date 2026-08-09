@@ -35,7 +35,7 @@ struct DeviceView: View {
             rockbox.refreshDevices()
             device.refresh(mount: mount)
         }
-        .onChange(of: rockbox.selectedDeviceID) { _, _ in
+        .onChange(of: rockbox.selectedDeviceID) { _ in
             selection.removeAll()
             device.refresh(mount: mount)
         }

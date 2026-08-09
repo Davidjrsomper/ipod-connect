@@ -258,7 +258,7 @@ struct SearchField: View {
                 .font(.system(size: 11))
                 .foregroundStyle(Theme.listText)
                 .focused($isFocused)
-                .onChange(of: library.focusSearchToken) { _, _ in
+                .onChange(of: library.focusSearchToken) { _ in
                     isFocused = true   // ⌘F
                 }
             if !library.searchText.isEmpty {

@@ -268,7 +268,7 @@ struct DeviceBar: View {
         .labelsHidden()
         .frame(width: 190)
         .controlSize(.small)
-        .onChange(of: rockbox.manualTarget) { _, _ in
+        .onChange(of: rockbox.manualTarget) { _ in
             Task { await rockbox.loadThemes() }
         }
     }

@@ -55,23 +55,23 @@ struct TrackListView: View {
                     }
                     .background(Theme.contentBG)
                     .focusable()
-                    .focusEffectDisabled()
                     .focused($listFocused)
-                    .onKeyPress(.space) {
-                        player.togglePlayPause()
-                        return .handled
-                    }
-                    .onKeyPress(.return) {
-                        if let selected = library.selectedTrackID,
-                           let track = visible.first(where: { $0.id == selected }) {
-                            player.play(track: track, in: visible)
-                            return .handled
+                    .background(ListKeyCatcher { key in
+                        switch key {
+                        case .space:
+                            player.togglePlayPause()
+                        case .enter:
+                            if let selected = library.selectedTrackID,
+                               let track = visible.first(where: { $0.id == selected }) {
+                                player.play(track: track, in: visible)
+                            }
+                        case .down:
+                            moveSelection(1, in: visible, proxy: proxy)
+                        case .up:
+                            moveSelection(-1, in: visible, proxy: proxy)
                         }
-                        return .ignored
-                    }
-                    .onKeyPress(.downArrow) { moveSelection(1, in: visible, proxy: proxy) }
-                    .onKeyPress(.upArrow) { moveSelection(-1, in: visible, proxy: proxy) }
-                    .onChange(of: library.goToCurrentToken) { _, _ in
+                    })
+                    .onChange(of: library.goToCurrentToken) { _ in
                         // ⌘L — reveal the playing track and select it.
                         guard let playing = player.current else { return }
                         library.selectedTrackID = playing.id
@@ -84,13 +84,12 @@ struct TrackListView: View {
         }
     }
 
-    private func moveSelection(_ delta: Int, in visible: [Track], proxy: ScrollViewProxy) -> KeyPress.Result {
-        guard !visible.isEmpty else { return .ignored }
+    private func moveSelection(_ delta: Int, in visible: [Track], proxy: ScrollViewProxy) {
+        guard !visible.isEmpty else { return }
         let currentIndex = library.selectedTrackID.flatMap { id in visible.firstIndex(where: { $0.id == id }) }
         let newIndex = max(0, min(visible.count - 1, (currentIndex ?? -1) + delta))
         library.selectedTrackID = visible[newIndex].id
         proxy.scrollTo(visible[newIndex].id)
-        return .handled
     }
 }
 
@@ -202,4 +201,63 @@ struct TrackRow: View {
             }
         }
     }
+}
+
+
+/// Space / Return / arrow handling for the track list.
+///
+/// SwiftUI's `onKeyPress` is macOS 14 only, and the app supports Monterey
+/// onwards, so this uses a local event monitor instead — the same approach
+/// already used for the click wheel and Cover Flow scrolling.
+struct ListKeyCatcher: NSViewRepresentable {
+    enum Key { case space, enter, up, down }
+    let onKey: (Key) -> Void
+
+    final class CatcherView: NSView {
+        var onKey: ((Key) -> Void)?
+        private var monitor: Any?
+
+        override func hitTest(_ point: NSPoint) -> NSView? { nil }
+
+        override func viewDidMoveToWindow() {
+            super.viewDidMoveToWindow()
+            if window != nil, monitor == nil {
+                monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+                    guard let self, let window = self.window, event.window === window else { return event }
+                    // Never steal keys from a text field — the search box has
+                    // every right to its own space bar and arrows.
+                    if window.firstResponder is NSTextView { return event }
+                    // Leave modified keys to the menu shortcuts.
+                    if !event.modifierFlags.intersection([.command, .option, .control]).isEmpty {
+                        return event
+                    }
+
+                    let key: Key?
+                    switch event.keyCode {
+                    case 49:  key = .space
+                    case 36, 76: key = .enter
+                    case 126: key = .up
+                    case 125: key = .down
+                    default:  key = nil
+                    }
+                    guard let key else { return event }
+                    self.onKey?(key)
+                    return nil
+                }
+            } else if window == nil, let monitor {
+                NSEvent.removeMonitor(monitor)
+                self.monitor = nil
+            }
+        }
+
+        deinit { if let monitor { NSEvent.removeMonitor(monitor) } }
+    }
+
+    func makeNSView(context: Context) -> CatcherView {
+        let view = CatcherView()
+        view.onKey = onKey
+        return view
+    }
+
+    func updateNSView(_ nsView: CatcherView, context: Context) { nsView.onKey = onKey }
 }
