@@ -15,6 +15,9 @@ struct iPodConnectApp: App {
         if let i = args.firstIndex(of: "--verify"), i + 1 < args.count {
             Self.verify(path: args[i + 1])
         }
+        if args.contains("--verify-itunesdb") {
+            exit(ITunesDBSelfTest.run())
+        }
     }
 
     /// Headless self-test: parse tags and confirm Core Audio can decode the file.
