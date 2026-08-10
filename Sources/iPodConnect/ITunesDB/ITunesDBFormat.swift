@@ -62,6 +62,8 @@ struct ITunesDBTrack {
     var year: UInt32 = 0
     var bitrate: UInt32 = 0
     var sampleRate: UInt32 = 0
+    var totalDiscs: UInt32 = 0
+    /// 64-bit identity used to match this track across the iPod's databases.
     var dbid: UInt64 = 0
 
     /// Turns the iPod's colon path into a real filesystem path on the mounted

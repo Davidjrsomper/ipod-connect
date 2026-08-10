@@ -112,15 +112,19 @@ enum ITunesDBReader {
             return r.u64() ?? 0
         }
 
-        // Offsets within mhit, from the chunk's first byte.
+        // Offsets within mhit, from the chunk's first byte. Verified against
+        // the iPodLinux format documentation rather than guessed.
         track.sizeBytes   = u32(atChunkOffset: 0x24)
         track.durationMS  = u32(atChunkOffset: 0x28)
         track.trackNumber = u32(atChunkOffset: 0x2C)
         track.totalTracks = u32(atChunkOffset: 0x30)
         track.year        = u32(atChunkOffset: 0x34)
         track.bitrate     = u32(atChunkOffset: 0x38)
+        // Stored multiplied by 0x10000, so 44100 lands in the high 16 bits.
         track.sampleRate  = u32(atChunkOffset: 0x3C) >> 16
-        track.dbid        = u64(atChunkOffset: 0x60)
+        track.totalDiscs  = u32(atChunkOffset: 0x60)
+        // 0x70, not 0x60 — 0x60 is the disc count.
+        track.dbid        = u64(atChunkOffset: 0x70)
 
         // The strings follow the fixed header as child mhod chunks.
         reader.offset = start + Int(headerLen)
@@ -219,7 +223,9 @@ enum ITunesDBSelfTest {
             w.u32(t.bitrate)              // 0x38
             w.u32(t.sampleRate << 16)     // 0x3C
             w.zeros(trackStart + 0x60 - w.count)
-            w.u64(t.dbid)                 // 0x60
+            w.u32(t.totalDiscs)           // 0x60
+            w.zeros(trackStart + 0x70 - w.count)
+            w.u64(t.dbid)                 // 0x70
             w.zeros(trackStart + Int(headerLen) - w.count)
 
             func mhod(_ type: MHODType, _ value: String) {
@@ -260,6 +266,7 @@ enum ITunesDBSelfTest {
         a.sizeBytes = 34_512_900; a.durationMS = 434_100
         a.trackNumber = 1; a.totalTracks = 16; a.year = 2013
         a.bitrate = 940; a.sampleRate = 44100; a.dbid = 0x1234_5678_9ABC_DEF0
+        a.totalDiscs = 1
 
         var b = ITunesDBTrack()
         b.trackID = 102; b.title = "Smells Like Teen Spirit"; b.artist = "Nirvana"
@@ -269,6 +276,7 @@ enum ITunesDBSelfTest {
         b.sizeBytes = 7_212_000; b.durationMS = 301_300
         b.trackNumber = 1; b.totalTracks = 12; b.year = 1991
         b.bitrate = 192; b.sampleRate = 44100; b.dbid = 0x0FED_CBA9_8765_4321
+        b.totalDiscs = 1
 
         let data = syntheticDatabase(tracks: [a, b])
         print("built a \(data.count)-byte database with 2 tracks")
@@ -305,6 +313,7 @@ enum ITunesDBSelfTest {
             checkN("year", UInt64(got.year), UInt64(want.year))
             checkN("bitrate", UInt64(got.bitrate), UInt64(want.bitrate))
             checkN("sampleRate", UInt64(got.sampleRate), UInt64(want.sampleRate))
+            checkN("totalDiscs", UInt64(got.totalDiscs), UInt64(want.totalDiscs))
             checkN("dbid", got.dbid, want.dbid)
         }
 
