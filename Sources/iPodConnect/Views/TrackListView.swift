@@ -4,13 +4,14 @@ struct ColumnWidths {
     let number: CGFloat = 40
     let time: CGFloat = 56
     let kind: CGFloat = 58
+    let quality: CGFloat = 108
     var name: CGFloat
     var artist: CGFloat
     var album: CGFloat
     var genre: CGFloat
 
     init(total: CGFloat) {
-        let flexible = max(300, total - 40 - 56 - 58)
+        let flexible = max(300, total - 40 - 56 - 58 - 108)
         name = flexible * 0.36
         artist = flexible * 0.25
         album = flexible * 0.25
@@ -100,6 +101,7 @@ struct HeaderRow: View {
             headerCell("Artist", field: .artist, width: widths.artist)
             headerCell("Album", field: .album, width: widths.album)
             headerCell("Genre", field: .genre, width: widths.genre)
+            headerCell("Quality", field: .quality, width: widths.quality)
             headerCell("Kind", field: .kind, width: widths.kind)
             Spacer(minLength: 0)
         }
@@ -164,6 +166,7 @@ struct TrackRow: View {
             cell(track.artist, width: widths.artist)
             cell(track.album, width: widths.album)
             cell(track.genre, width: widths.genre)
+            cell(track.qualityText, width: widths.quality, secondary: true)
             cell(track.format, width: widths.kind, secondary: true)
             Spacer(minLength: 0)
         }

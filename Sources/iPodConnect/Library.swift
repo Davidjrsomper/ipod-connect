@@ -100,6 +100,9 @@ final class Library: ObservableObject {
             let r = a.format.localizedStandardCompare(b.format)
             if r != .orderedSame { return r == .orderedAscending }
             if let o = albumOrder(a, b) { return o }
+        case .quality:
+            if a.qualityRank != b.qualityRank { return a.qualityRank < b.qualityRank }
+            if let o = albumOrder(a, b) { return o }
         }
         return a.title.localizedStandardCompare(b.title) == .orderedAscending
     }
