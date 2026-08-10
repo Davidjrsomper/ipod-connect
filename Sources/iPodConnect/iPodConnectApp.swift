@@ -18,6 +18,10 @@ struct iPodConnectApp: App {
         if args.contains("--verify-itunesdb") {
             exit(ITunesDBSelfTest.run())
         }
+        if let i = args.firstIndex(of: "--verify-hash58"), i + 2 < args.count {
+            exit(ITunesDBHash58Test.run(firewireHex: args[i + 1],
+                                        length: Int(args[i + 2]) ?? 0))
+        }
     }
 
     /// Headless self-test: parse tags and confirm Core Audio can decode the file.
