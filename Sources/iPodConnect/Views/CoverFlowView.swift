@@ -315,6 +315,7 @@ enum CoverFlowColumns {
     static let time: CGFloat = 52
     static let artist: CGFloat = 150
     static let album: CGFloat = 150
+    static let quality: CGFloat = 104
     static let kind: CGFloat = 56
 }
 
@@ -327,6 +328,7 @@ struct CoverFlowListHeader: View {
             Text("Time").frame(width: CoverFlowColumns.time, alignment: .leading)
             Text("Artist").frame(width: CoverFlowColumns.artist, alignment: .leading)
             Text("Album").frame(width: CoverFlowColumns.album, alignment: .leading)
+            Text("Quality").frame(width: CoverFlowColumns.quality, alignment: .leading)
             Text("Kind").frame(width: CoverFlowColumns.kind, alignment: .leading)
         }
         .font(.system(size: 11, weight: .medium))
@@ -376,6 +378,10 @@ struct CoverFlowRow: View {
             Text(track.album)
                 .lineLimit(1)
                 .frame(width: CoverFlowColumns.album, alignment: .leading)
+                .foregroundStyle(isSelected ? .white.opacity(0.85) : Theme.secondaryText)
+            Text(track.qualityText)
+                .lineLimit(1)
+                .frame(width: CoverFlowColumns.quality, alignment: .leading)
                 .foregroundStyle(isSelected ? .white.opacity(0.85) : Theme.secondaryText)
             Text(track.format)
                 .frame(width: CoverFlowColumns.kind, alignment: .leading)
