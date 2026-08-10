@@ -1,0 +1,69 @@
+# Cuts a release when a version tag is pushed.
+#
+#     git tag v1.7.0 && git push origin v1.7.0
+#
+# Nothing ships from a plain commit — only from a deliberate tag. That's the
+# point: commits are cheap, releases interrupt people.
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  release:
+    runs-on: macos-15
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0        # build number comes from the commit count
+
+      - name: Derive version from the tag
+        run: echo "${GITHUB_REF_NAME#v}" > VERSION
+
+      - name: Build the app
+        run: ./build.sh
+
+      - name: Package
+        run: |
+          mkdir -p dist releases
+          ditto -c -k --sequesterRsrc --keepParent \
+            "build/iPod Connect.app" "releases/iPodConnect-$(cat VERSION).zip"
+          cp "releases/iPodConnect-$(cat VERSION).zip" dist/iPodConnect.zip
+
+      - name: Sign the update and rebuild the appcast
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+        run: |
+          ./scripts/fetch_sparkle_tools.sh
+          # sign_update reads the key from stdin when it isn't in the Keychain
+          printf '%s' "$SPARKLE_PRIVATE_KEY" > /tmp/sparkle_key
+          .tools/bin/generate_appcast \
+            --ed-key-file /tmp/sparkle_key \
+            --maximum-deltas 0 --maximum-versions 1 \
+            --download-url-prefix \
+              "https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}/" \
+            releases/
+          rm -f /tmp/sparkle_key
+          cp releases/appcast.xml docs/appcast.xml
+
+      - name: Publish the appcast so the update feed points at this build
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/appcast.xml VERSION
+          git commit -m "Update appcast for ${GITHUB_REF_NAME}" || echo "nothing to commit"
+          git push origin HEAD:main
+
+      - name: Create the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" \
+            "dist/iPodConnect.zip" \
+            "releases/iPodConnect-$(cat VERSION).zip" \
+            --title "iPod Connect $(cat VERSION)" \
+            --generate-notes
