@@ -32,7 +32,8 @@ enum IPodDetector {
                 installedTarget: target,
                 installedVersion: version,
                 hasAppleFirmware: hasApple,
-                fileSystem: fileSystemType(forMountPoint: mount)
+                fileSystem: fileSystemType(forMountPoint: mount),
+                bsdVolume: bsdVolume(forMountPoint: mount)
             ))
         }
         return found
@@ -54,6 +55,15 @@ enum IPodDetector {
             }
         }
         return (target, version)
+    }
+
+    /// The volume's own device node (e.g. /dev/disk4s2) — as opposed to the
+    /// whole disk. Erasing this reformats the music partition and leaves the
+    /// firmware partition, which holds the bootloader, untouched.
+    static func bsdVolume(forMountPoint mount: String) -> String? {
+        guard let id = diskutilInfo(forMountPoint: mount)?["DeviceIdentifier"] as? String
+        else { return nil }
+        return "/dev/" + id
     }
 
     /// diskutil's FilesystemType for a mount point, e.g. "msdos" or "hfs".

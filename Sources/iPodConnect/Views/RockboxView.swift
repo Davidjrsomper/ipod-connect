@@ -4,11 +4,13 @@ import SwiftUI
 struct RockboxView: View {
     @EnvironmentObject var rockbox: RockboxManager
     @State private var showBootloaderConfirm = false
+    @State private var showFormatSheet = false
 
     var body: some View {
         VStack(spacing: 0) {
             header
-            DeviceBar(showBootloaderConfirm: $showBootloaderConfirm)
+            DeviceBar(showBootloaderConfirm: $showBootloaderConfirm,
+                      showFormatSheet: $showFormatSheet)
             if !rockbox.preflightIssues.isEmpty { PreflightWarnings() }
             if rockbox.isBusy { busyBar }
             if let message = rockbox.statusMessage { banner(message, isError: false) }
@@ -20,6 +22,9 @@ struct RockboxView: View {
         .task {
             rockbox.refreshDevices()
             if rockbox.themes.isEmpty { await rockbox.loadThemes() }
+        }
+        .sheet(isPresented: $showFormatSheet) {
+            FormatSheet().environmentObject(rockbox)
         }
         .confirmationDialog(
             "Install the Rockbox bootloader?",
@@ -180,6 +185,7 @@ struct RockboxView: View {
 struct DeviceBar: View {
     @EnvironmentObject var rockbox: RockboxManager
     @Binding var showBootloaderConfirm: Bool
+    @Binding var showFormatSheet: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -245,6 +251,9 @@ struct DeviceBar: View {
                 .disabled(rockbox.isBusy)
 
                 Button("Install Bootloader…") { showBootloaderConfirm = true }
+                    .controlSize(.small)
+                    .disabled(rockbox.isBusy)
+                Button("Format as FAT32…") { showFormatSheet = true }
                     .controlSize(.small)
                     .disabled(rockbox.isBusy)
                 Spacer()
@@ -443,5 +452,61 @@ struct PreflightWarnings: View {
         .background(Theme.rowAlt)
         .overlay(alignment: .top) { Theme.headerBorder.frame(height: 1) }
         .overlay(alignment: .bottom) { Theme.headerBorder.frame(height: 1) }
+    }
+}
+
+
+/// Erasing someone's iPod deserves more than an OK button, so this asks them
+/// to type the device's name — the same pattern Disk Utility and GitHub use
+/// for destructive actions.
+struct FormatSheet: View {
+    @EnvironmentObject var rockbox: RockboxManager
+    @Environment(\.dismiss) private var dismiss
+    @State private var typed = ""
+
+    private var deviceName: String { rockbox.selectedDevice?.volumeName ?? "" }
+    private var matches: Bool {
+        typed.trimmingCharacters(in: .whitespaces).caseInsensitiveCompare(deviceName) == .orderedSame
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("Format “\(deviceName)” as FAT32?")
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(Theme.emptyTitle)
+
+            Text("""
+            This erases every song and file on the iPod. It cannot be undone.
+
+            Only the music partition is reformatted — a bootloader already installed stays where it is.
+
+            FAT32 is the only format Rockbox can read, so this is the step that makes an iPod which won't boot into Rockbox start working.
+            """)
+                .font(.system(size: 12))
+                .foregroundStyle(Theme.secondaryText)
+                .fixedSize(horizontal: false, vertical: true)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Type **\(deviceName)** to confirm:")
+                    .font(.system(size: 11))
+                    .foregroundStyle(Theme.secondaryText)
+                TextField("", text: $typed)
+                    .textFieldStyle(.roundedBorder)
+            }
+
+            HStack {
+                Spacer()
+                Button("Cancel") { dismiss() }
+                    .keyboardShortcut(.cancelAction)
+                Button("Erase and Format") {
+                    dismiss()
+                    Task { await rockbox.formatAsFAT32() }
+                }
+                .disabled(!matches)
+            }
+        }
+        .padding(18)
+        .frame(width: 420)
+        .background(Theme.contentBG)
     }
 }

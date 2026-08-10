@@ -200,6 +200,30 @@ final class RockboxManager: ObservableObject {
         }
     }
 
+    // MARK: Formatting
+
+    /// Erases the iPod's music partition and reformats it as FAT32. The
+    /// firmware partition is left alone, so a bootloader already installed
+    /// survives. Destructive, so the UI makes the user type the iPod's name.
+    func formatAsFAT32() async {
+        guard let device = selectedDevice else {
+            errorMessage = RockboxError.noDevice.localizedDescription
+            return
+        }
+        guard let volume = device.bsdVolume else {
+            errorMessage = "Couldn't work out which partition to format."
+            return
+        }
+        let name = device.volumeName
+
+        await run("Formatting \(name) as FAT32…") {
+            try RockboxInstaller.formatAsFAT32(volume: volume, name: name)
+            // Give the volume a moment to remount under its new name.
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            return "Formatted as FAT32. Install Rockbox next, then the bootloader."
+        }
+    }
+
     // MARK: Bootloader
 
     func installBootloader() async {

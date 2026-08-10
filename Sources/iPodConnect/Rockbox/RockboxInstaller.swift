@@ -175,6 +175,37 @@ enum RockboxInstaller {
         try runPatcherAsAdmin(arguments: [device, "-d"])
     }
 
+    // MARK: - Formatting
+
+    /// Reformats the iPod's music partition as FAT32, which is the only
+    /// filesystem Rockbox can read.
+    ///
+    /// Deliberately erases the *volume*, not the whole disk: an iPod's
+    /// firmware partition sits outside the music partition, and wiping it
+    /// would force an iTunes/Finder restore before anything else could work.
+    /// `diskutil eraseVolume` on an external disk needs no admin password.
+    static func formatAsFAT32(volume: String, name: String) throws {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/sbin/diskutil")
+        // FAT32 volume labels are 11 characters, upper case, no spaces.
+        let label = String(name.uppercased()
+            .filter { $0.isLetter || $0.isNumber }
+            .prefix(11))
+        process.arguments = ["eraseVolume", "MS-DOS FAT32",
+                             label.isEmpty ? "IPOD" : label, volume]
+        let pipe = Pipe()
+        process.standardOutput = pipe
+        process.standardError = pipe
+        try process.run()
+        let output = String(data: pipe.fileHandleForReading.readDataToEndOfFile(),
+                            encoding: .utf8) ?? ""
+        process.waitUntilExit()
+        guard process.terminationStatus == 0 else {
+            throw RockboxError.patcherFailed(
+                output.trimmingCharacters(in: .whitespacesAndNewlines))
+        }
+    }
+
     // MARK: - iPod Classic 6G/7G (USB DFU)
     //
     // The Classic doesn't take a firmware-partition write like the older

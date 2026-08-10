@@ -70,6 +70,8 @@ struct ConnectedIPod: Identifiable, Hashable {
     let hasAppleFirmware: Bool
     /// diskutil's FilesystemType: "msdos" for FAT32, "hfs" for a Macpod.
     let fileSystem: String?
+    /// The music partition itself, e.g. /dev/disk4s2.
+    let bsdVolume: String?
 
     /// Rockbox can only read FAT32. An HFS+ ("Macpod") iPod will accept the
     /// bootloader happily and then fail to boot, because the bootloader can't
