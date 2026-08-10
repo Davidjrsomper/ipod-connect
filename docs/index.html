@@ -517,11 +517,11 @@
       </p>
     </div>
     <div class="col">
-      <h3>Rockbox, sorted.</h3>
+      <h3>Rockbox, start to finish.</h3>
       <p>
-        Install Rockbox and browse hundreds of themes with real previews,
-        filtered to your model. Switch between the ones you've saved without
-        digging through menus on the device.
+        Format the iPod, install Rockbox, add the bootloader, then browse hundreds
+        of themes with real previews filtered to your model — the whole job in one
+        window. The Classic install is confirmed working on real hardware.
       </p>
     </div>
   </div>
@@ -616,12 +616,31 @@
     </p>
   </div>
   <div class="spec-row">
-    <div class="k">Installing Rockbox</div>
+    <div class="k">Installing Rockbox<br>iPod Classic</div>
+    <p class="v">
+      <span class="badge b-ready">Confirmed</span>
+      <strong>Working on real hardware.</strong> The bootloader install has been
+      run successfully on an iPod Classic 7th generation. It goes over USB, needs
+      no administrator password, and if it fails the iPod stays in DFU mode where
+      Finder can restore it.
+    </p>
+  </div>
+  <div class="spec-row">
+    <div class="k">Installing Rockbox<br>older iPods</div>
     <p class="v">
       <span class="badge b-test">In testing</span>
-      <strong>Not yet confirmed on real hardware.</strong> The app backs up your
-      existing firmware first and stops if that backup fails — but don't point it
-      at an iPod you'd be upset to lose.
+      The 1st–5.5G, mini, nano and Colour models take a different route — a write
+      to the firmware partition — and that path isn't confirmed on hardware yet.
+      Your existing firmware is backed up first and the install stops if that
+      backup fails, but don't use an iPod you'd be upset to lose.
+    </p>
+  </div>
+  <div class="spec-row">
+    <div class="k">Formatting the iPod</div>
+    <p class="v">
+      <span class="badge b-ready">Ready</span>
+      Reformats the music partition as FAT32, the only format Rockbox can read.
+      No Windows PC needed — “MS-DOS (FAT32)” is simply what Apple calls it.
     </p>
   </div>
   <div class="spec-row">
@@ -642,9 +661,10 @@
   </div>
 
   <p class="callout">
-    <strong>iPod Classic, 6th and 7th generation.</strong> Themes and music work
-    once Rockbox is installed, but the initial install has to be done with the
-    official tool — the app points you there rather than pretending otherwise.
+    <strong>iPod Classic, 6th and 7th generation.</strong> Fully supported in the
+    app now, including the bootloader — it walks you through the DFU button hold
+    and writes it over USB. This is the one install route confirmed working on
+    real hardware.
   </p>
 </div>
 
