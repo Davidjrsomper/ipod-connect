@@ -9,6 +9,7 @@ struct RockboxView: View {
         VStack(spacing: 0) {
             header
             DeviceBar(showBootloaderConfirm: $showBootloaderConfirm)
+            if !rockbox.preflightIssues.isEmpty { PreflightWarnings() }
             if rockbox.isBusy { busyBar }
             if let message = rockbox.statusMessage { banner(message, isError: false) }
             if let message = rockbox.errorMessage { banner(message, isError: true) }
@@ -25,18 +26,23 @@ struct RockboxView: View {
             isPresented: $showBootloaderConfirm,
             titleVisibility: .visible
         ) {
+            let warned = !rockbox.preflightIssues.isEmpty
             if rockbox.activeTarget.bootloader == .dfu {
-                Button("Continue", role: .destructive) {
+                Button(warned ? "Install Anyway" : "Continue", role: .destructive) {
                     Task { await rockbox.installClassicBootloader() }
                 }
             } else {
-                Button("Back Up Firmware and Install", role: .destructive) {
+                Button(warned ? "Install Anyway" : "Back Up Firmware and Install", role: .destructive) {
                     Task { await rockbox.installBootloader() }
                 }
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            if rockbox.activeTarget.bootloader == .dfu {
+            if !rockbox.preflightIssues.isEmpty {
+                Text(rockbox.preflightIssues.map { "\($0.title).\n\n\($0.detail)" }
+                        .joined(separator: "\n\n")
+                     + "\n\nInstalling now will very likely leave the iPod unable to start Rockbox.")
+            } else if rockbox.activeTarget.bootloader == .dfu {
                 Text("""
                 This sends new boot firmware to your iPod over USB.
 
@@ -402,5 +408,40 @@ struct DFUPrompt: View {
         .background(Theme.rowAlt)
         .overlay(RoundedRectangle(cornerRadius: 5).strokeBorder(Theme.accent.opacity(0.4), lineWidth: 1))
         .clipShape(RoundedRectangle(cornerRadius: 5))
+    }
+}
+
+
+/// Flags the two things that make a bootloader install fail after the fact:
+/// a non-FAT32 iPod, and Rockbox not being installed yet.
+struct PreflightWarnings: View {
+    @EnvironmentObject var rockbox: RockboxManager
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            ForEach(rockbox.preflightIssues) { issue in
+                HStack(alignment: .top, spacing: 8) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.system(size: 12))
+                        .foregroundStyle(.orange)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(issue.title)
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(Theme.listText)
+                        Text(issue.detail)
+                            .font(.system(size: 11))
+                            .foregroundStyle(Theme.secondaryText)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    Spacer(minLength: 0)
+                }
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Theme.rowAlt)
+        .overlay(alignment: .top) { Theme.headerBorder.frame(height: 1) }
+        .overlay(alignment: .bottom) { Theme.headerBorder.frame(height: 1) }
     }
 }

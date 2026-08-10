@@ -38,6 +38,50 @@ final class RockboxManager: ObservableObject {
 
     var isBusy: Bool { busyMessage != nil }
 
+    /// Things that will make a bootloader install fail *after* it appears to
+    /// succeed. Both are common enough to be worth catching up front rather
+    /// than leaving someone with an iPod that won't boot.
+    enum PreflightIssue: Identifiable {
+        case notFAT32(String)
+        case rockboxMissing
+
+        var id: String {
+            switch self {
+            case .notFAT32: return "fat32"
+            case .rockboxMissing: return "rockbox"
+            }
+        }
+
+        var title: String {
+            switch self {
+            case .notFAT32(let fs): return "This iPod is formatted \(fs), not FAT32"
+            case .rockboxMissing: return "Rockbox isn't on this iPod yet"
+            }
+        }
+
+        var detail: String {
+            switch self {
+            case .notFAT32:
+                return "Rockbox can only read FAT32. The bootloader will install, then fail to start, because it can't read the disk to find Rockbox. Reformat the iPod as MS-DOS (FAT32) in Disk Utility first — this erases it, so copy anything you want to keep off the device beforehand."
+            case .rockboxMissing:
+                return "The bootloader starts Rockbox, but Rockbox itself isn't installed. Install it first with the button above, then install the bootloader — otherwise the iPod boots to a blank screen or falls back to Apple's firmware."
+            }
+        }
+    }
+
+    /// Checked before flashing anything.
+    var preflightIssues: [PreflightIssue] {
+        guard let device = selectedDevice else { return [] }
+        var issues: [PreflightIssue] = []
+        if device.fileSystem != nil && !device.isFAT32 {
+            issues.append(.notFAT32(device.fileSystemName))
+        }
+        if !device.isRockboxed {
+            issues.append(.rockboxMissing)
+        }
+        return issues
+    }
+
     var visibleThemes: [RockboxTheme] {
         let query = themeSearch.trimmingCharacters(in: .whitespaces)
         guard !query.isEmpty else { return themes }

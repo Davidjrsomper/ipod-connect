@@ -31,7 +31,8 @@ enum IPodDetector {
                 bsdDisk: bsdDisk(forMountPoint: mount),
                 installedTarget: target,
                 installedVersion: version,
-                hasAppleFirmware: hasApple
+                hasAppleFirmware: hasApple,
+                fileSystem: fileSystemType(forMountPoint: mount)
             ))
         }
         return found
@@ -55,9 +56,12 @@ enum IPodDetector {
         return (target, version)
     }
 
-    /// Maps a mount point to its whole-disk device (e.g. /dev/disk4), which is
-    /// what ipodpatcher operates on.
-    static func bsdDisk(forMountPoint mount: String) -> String? {
+    /// diskutil's FilesystemType for a mount point, e.g. "msdos" or "hfs".
+    static func fileSystemType(forMountPoint mount: String) -> String? {
+        diskutilInfo(forMountPoint: mount)?["FilesystemType"] as? String
+    }
+
+    private static func diskutilInfo(forMountPoint mount: String) -> [String: Any]? {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/sbin/diskutil")
         process.arguments = ["info", "-plist", mount]
@@ -68,8 +72,15 @@ enum IPodDetector {
         let data = pipe.fileHandleForReading.readDataToEndOfFile()
         process.waitUntilExit()
         guard process.terminationStatus == 0,
-              let plist = try? PropertyListSerialization.propertyList(from: data, format: nil),
-              let dict = plist as? [String: Any] else { return nil }
+              let plist = try? PropertyListSerialization.propertyList(from: data, format: nil)
+        else { return nil }
+        return plist as? [String: Any]
+    }
+
+    /// Maps a mount point to its whole-disk device (e.g. /dev/disk4), which is
+    /// what ipodpatcher operates on.
+    static func bsdDisk(forMountPoint mount: String) -> String? {
+        guard let dict = diskutilInfo(forMountPoint: mount) else { return nil }
 
         // Prefer the parent whole disk; the firmware partition lives outside
         // the mounted data partition.

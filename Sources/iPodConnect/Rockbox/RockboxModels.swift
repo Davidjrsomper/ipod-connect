@@ -68,6 +68,24 @@ struct ConnectedIPod: Identifiable, Hashable {
     let installedVersion: String?
     /// True when iPod_Control exists — i.e. it really looks like an iPod.
     let hasAppleFirmware: Bool
+    /// diskutil's FilesystemType: "msdos" for FAT32, "hfs" for a Macpod.
+    let fileSystem: String?
+
+    /// Rockbox can only read FAT32. An HFS+ ("Macpod") iPod will accept the
+    /// bootloader happily and then fail to boot, because the bootloader can't
+    /// read the data partition to find .rockbox — the single most common way
+    /// a Rockbox install goes wrong.
+    var isFAT32: Bool { fileSystem?.lowercased() == "msdos" }
+
+    var fileSystemName: String {
+        switch fileSystem?.lowercased() {
+        case "msdos": return "FAT32"
+        case "hfs":   return "Mac OS Extended (HFS+)"
+        case "apfs":  return "APFS"
+        case let other?: return other.uppercased()
+        default: return "unknown"
+        }
+    }
 
     var isRockboxed: Bool { installedTarget != nil }
 
