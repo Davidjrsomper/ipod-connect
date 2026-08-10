@@ -150,6 +150,10 @@ enum ITunesDBReader {
 
     /// mhod — a typed blob. String types carry UTF-16LE text after a small
     /// sub-header; everything else is skipped.
+    static func debugParseMHOD(_ reader: inout ByteReader) -> (UInt32, String)? {
+        parseMHOD(&reader)
+    }
+
     private static func parseMHOD(_ reader: inout ByteReader) -> (UInt32, String)? {
         let start = reader.offset
         _ = reader.magic()
@@ -162,16 +166,18 @@ enum ITunesDBReader {
             else { reader.offset = start + Int(headerLen) }
         }
 
-        // String payload: position, byte length, then the UTF-16LE data.
+        // String payload, per the format documentation:
+        //   0x18 position   0x1C length in bytes   0x20 unknown
+        //   0x24 unknown    0x28 UTF-16LE data
         var body = reader
-        body.offset = start + Int(headerLen)
+        body.offset = start + Int(headerLen)        // headerLen is 0x18 here
         guard body.remaining >= 16 else { return (type, "") }
-        _ = body.u32()                              // unknown
-        _ = body.u32()                              // unknown
-        guard let byteLength = body.u32() else { return (type, "") }
-        _ = body.u32()                              // unknown
+        _ = body.u32()                              // 0x18 position
+        guard let byteLength = body.u32() else { return (type, "") }  // 0x1C
+        _ = body.u32()                              // 0x20
+        _ = body.u32()                              // 0x24
 
-        let textStart = body.offset
+        let textStart = body.offset                 // 0x28
         let text = reader.utf16String(at: textStart, byteLength: Int(byteLength)) ?? ""
         return (type, text)
     }
@@ -233,12 +239,12 @@ enum ITunesDBSelfTest {
                 w.ascii("mhod"); w.u32(24)
                 let totalAt = w.count; w.u32(0)
                 w.u32(type.rawValue)
-                w.u32(0); w.u32(0)                    // header padding to 24
-                w.u32(1)                              // position
-                w.u32(0)
-                w.u32(UInt32(value.utf16.count * 2))  // byte length
-                w.u32(0)
-                w.utf16(value)
+                w.u32(0); w.u32(0)                    // 0x10, 0x14 — header to 0x18
+                w.u32(1)                              // 0x18 position
+                w.u32(UInt32(value.utf16.count * 2))  // 0x1C length in bytes
+                w.u32(0)                              // 0x20
+                w.u32(0)                              // 0x24
+                w.utf16(value)                        // 0x28
                 w.patchU32(at: totalAt, UInt32(w.count - start))
             }
             mhod(.title, t.title)
@@ -255,6 +261,52 @@ enum ITunesDBSelfTest {
         w.patchU32(at: dsTotalAt, UInt32(w.count - dsStart))
         w.patchU32(at: dbTotalAt, UInt32(w.count))
         return w.data
+    }
+
+    /// Hand-built bytes laid out to the published spec, independent of our own
+    /// writer. Round-tripping our own output can't catch a shared
+    /// misunderstanding — this can, because the buffer is written to the
+    /// documented offsets by hand and seeded with a decoy.
+    static func specConformance() -> Bool {
+        let text = "Kim"
+        let utf16 = Array(text.utf16)
+        let byteLen = UInt32(utf16.count * 2)
+
+        var w = ByteWriter()
+        w.ascii("mhod")
+        w.u32(0x18)                     // 0x04 header length
+        let totalAt = w.count; w.u32(0) // 0x08 total length
+        w.u32(MHODType.title.rawValue)  // 0x0C type
+        w.u32(0)                        // 0x10
+        w.u32(0)                        // 0x14
+        w.u32(1)                        // 0x18 position
+        w.u32(byteLen)                  // 0x1C length  <- the correct field
+        w.u32(0xDEAD_BEEF)              // 0x20 decoy: reading here gives nonsense
+        w.u32(0)                        // 0x24
+        w.utf16(text)                   // 0x28 data
+        w.patchU32(at: totalAt, UInt32(w.count))
+
+        // Wrap it in the minimum tree the reader needs to reach an mhod.
+        var track = ITunesDBTrack()
+        track.trackID = 1
+        track.title = ""
+        let db = syntheticDatabase(tracks: [track])
+        _ = db  // structure already covered above; here we check the mhod alone
+
+        var reader = ByteReader(w.data)
+        // Drive the same code path the parser uses for a string mhod.
+        let parsed = ITunesDBReader.debugParseMHOD(&reader)
+        guard let (type, value) = parsed else {
+            print("  FAIL spec conformance: mhod did not parse")
+            return false
+        }
+        guard type == MHODType.title.rawValue, value == text else {
+            print("  FAIL spec conformance: got type \(type) value \"\(value)\", want 1 / \"\(text)\"")
+            print("        (reading the length from 0x20 instead of 0x1C produces exactly this)")
+            return false
+        }
+        print("PASS: string mhod matches the published layout (length at 0x1C)")
+        return true
     }
 
     static func run() -> Int32 {
@@ -316,6 +368,8 @@ enum ITunesDBSelfTest {
             checkN("totalDiscs", UInt64(got.totalDiscs), UInt64(want.totalDiscs))
             checkN("dbid", got.dbid, want.dbid)
         }
+
+        if !specConformance() { failures += 1 }
 
         if failures == 0 {
             print("PASS: every field round-tripped")
