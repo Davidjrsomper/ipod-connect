@@ -19,14 +19,14 @@ git push origin v1.7.0
 ```
 
 That triggers `.github/workflows/release.yml`, which builds, signs, updates
-the appcast and publishes — the same steps `scripts/release.sh` does locally,
+the appcast and publishes, the same steps `scripts/release.sh` does locally,
 but reproducibly and only when you asked for it.
 
 ## What earns a release
 
 - A fix for something that's actually broken for users
 - A feature people can use
-- Anything affecting data safety — formatting, the bootloader, syncing
+- Anything affecting data safety: formatting, the bootloader, syncing
 
 ## What doesn't
 
@@ -41,7 +41,7 @@ Batch small changes. Three fixes in one release beats three releases.
 `SUAutomaticallyUpdate` is on, so Sparkle downloads in the background and
 applies on the next launch. No dialog for routine releases.
 
-Users can still check manually — **iPod Connect → Check for Updates…** — and
+Users can still check manually (**iPod Connect → Check for Updates…**), and
 can turn automatic updates off in Sparkle's own prompt on first run.
 
 ## CI setup, one time
@@ -56,5 +56,5 @@ The workflow needs the Sparkle signing key as a repository secret named
 5. Name `SPARKLE_PRIVATE_KEY`, paste the key's contents
 
 Without that secret the workflow fails at the signing step, and updates would
-be rejected by installed copies — which is the correct failure. Never commit
+be rejected by installed copies, which is the correct failure. Never commit
 the key.

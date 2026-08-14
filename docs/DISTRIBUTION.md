@@ -18,11 +18,11 @@ the repo. The **public key** is written into `Resources/Info.plist` as
 
 Every update is signed with the private key; the app verifies it against
 the embedded public key before installing. This is what stops someone
-from serving a malicious "update" — it works entirely independently of
+from serving a malicious "update": it works entirely independently of
 Apple.
 
 > **Back up the private key.** Keychain Access → search "Sparkle" →
-> export. If you lose it, existing installs can never be updated again —
+> export. If you lose it, existing installs can never be updated again;
 > you'd have to ship a new public key, which only reaches people who
 > download fresh.
 
@@ -40,7 +40,7 @@ create a `gh-pages` branch (or `/docs` folder) in the repo and publish
 `appcast.xml` there.
 
 Change `SUFeedURL` if you host it elsewhere. It has to be set *before*
-you ship v1.0.0 — installs check whatever URL was baked in at build time.
+you ship v1.0.0. Installs check whatever URL was baked in at build time.
 
 ## Cutting a release
 
@@ -57,7 +57,7 @@ That will:
 5. Regenerate `releases/appcast.xml` with the new entry
 
 Edit `releases/iPodConnect-1.1.0.html` (the release notes shown inside
-the update dialog) before publishing — it's generated with a placeholder.
+the update dialog) before publishing; it's generated with a placeholder.
 
 Then publish, in two places:
 
@@ -128,7 +128,7 @@ After that, downloads open with a normal double-click and no warnings.
 
 ## Architecture support
 
-The current build is **Apple Silicon only** — it targets whatever
+The current build is **Apple Silicon only**: it targets whatever
 architecture the build machine has. Intel Mac users cannot run it.
 
 Building universal (`swift build --arch arm64 --arch x86_64`) requires

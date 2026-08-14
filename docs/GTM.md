@@ -1,13 +1,13 @@
-# iPod Connect — Go-to-Market
+# iPod Connect: Go-to-Market
 
 ## Positioning
 
 **One-liner:** The Mac music player for people who kept their FLAC
-library — and miss when music felt like something you owned.
+library, and miss when music felt like something you owned.
 
 **The wedge:** Apple Music is a rental service with a search box. Anyone
-with a real local library — ripped CDs, Bandcamp purchases, Soulseek
-hauls, hi-res downloads — is a second-class citizen in the modern Music
+with a real local library (ripped CDs, Bandcamp purchases, Soulseek
+hauls, hi-res downloads) is a second-class citizen in the modern Music
 app. Meanwhile macOS *still* has no first-party FLAC support, so the
 single most common lossless format is invisible to Apple's own player.
 
@@ -18,24 +18,24 @@ classic when you want it to.
 **Why now:** the iPod revival is real and it is young. Refurb iPod prices
 have climbed for years, iPod modding (flash storage, larger batteries)
 is a healthy hobbyist scene, and "digital ownership" as a reaction to
-streaming rot — songs silently vanishing from playlists, albums getting
-re-mastered under you — has moved from niche to mainstream discourse.
+streaming rot (songs silently vanishing from playlists, albums getting
+re-mastered under you) has moved from niche to mainstream discourse.
 The people rediscovering iPods are not nostalgic Gen X; they are
 teenagers and 20-somethings buying a 2007 device for the first time.
 
 ## Target audience
 
-**Primary — "library keepers" (highest intent)**
+**Primary: "library keepers" (highest intent)**
 People with 500+ local files who already resent the modern Music app.
 They rip CDs, buy Bandcamp, care about tags, and know what FLAC is.
 Small, but they convert immediately and evangelize.
 
-**Secondary — "iPod revivalists" (highest growth)**
+**Secondary: "iPod revivalists" (highest growth)**
 The r/ipod, TikTok, and YouTube-modding crowd. They own a physical iPod
 or want to. The iPod emulator view is the hook; the library manager is
 what makes them stay.
 
-**Tertiary — "anti-streaming" converts**
+**Tertiary: "anti-streaming" converts**
 People leaving Spotify over artist payouts, AI slop tracks, or losing
 saved albums. They have a folder of downloads and no good player.
 
@@ -46,28 +46,28 @@ product is for them.
 ## Distribution channels, in priority order
 
 ### 1. Reddit (the actual launch)
-- **r/ipod** (~200k) — the emulator view is the post. Lead with a screen
+- **r/ipod** (~200k): the emulator view is the post. Lead with a screen
   recording of the click wheel scrolling a real library.
-- **r/audiophile, r/headphones** — lead with FLAC support and gapless
+- **r/audiophile, r/headphones**: lead with FLAC support and gapless
   playback, never with nostalgia. This crowd is allergic to gimmicks.
-- **r/macapps** — lead with "native SwiftUI, no Electron, 2MB."
-- **r/DataHoarder** — lead with "points at your existing folder, doesn't
+- **r/macapps**: lead with "native SwiftUI, no Electron, 2MB."
+- **r/DataHoarder**: lead with "points at your existing folder, doesn't
   move or rename anything."
 
 Post as a person, not a brand. Reddit punishes marketing voice hard.
 "I built this because I got a refurb Classic and couldn't stand Music
 .app" is the honest framing and also the effective one.
 
-### 2. Hacker News — "Show HN"
+### 2. Hacker News: "Show HN"
 One shot; make it count. HN responds to the *technical* story, not the
 nostalgia: **"Show HN: I wrote a FLAC parser and an iPod click wheel in
 SwiftUI."** The native-FLAC-metadata-parsing angle (no libFLAC, no
 ffmpeg, reads STREAMINFO/VORBIS_COMMENT directly) is genuinely
-interesting to that audience. Post Tue–Thu, 8–10am ET. Be in the thread
+interesting to that audience. Post Tue-Thu, 8-10am ET. Be in the thread
 all day answering.
 
 ### 3. YouTube / TikTok creator seeding
-The iPod modding scene is video-native. Identify 10–20 creators making
+The iPod modding scene is video-native. Identify 10-20 creators making
 iPod restoration or "why I quit Spotify" content and send a personal
 note with a download link and a 30-second demo clip. One mid-size
 creator demoing the click wheel is worth more than every other channel
@@ -86,7 +86,7 @@ This is the highest-intent, least-served audience on the list.
 ## Launch sequence
 
 **Pre-launch (before any post)**
-- [ ] Verify `SUFeedURL` + `SUPublicEDKey` are final and correct — these
+- [ ] Verify `SUFeedURL` + `SUPublicEDKey` are final and correct. These
       cannot be changed for anyone who already downloaded
 - [ ] Publish v1.0.0 and confirm a 1.0.0 → 1.0.1 update actually installs
       on a *second* Mac, not just the build machine
@@ -94,27 +94,27 @@ This is the highest-intent, least-served audience on the list.
       instructions including the Gatekeeper steps
 - [ ] Decide the licensing/pricing story (see below)
 
-**Week 1** — Reddit posts, staggered a few days apart, different angle
+**Week 1:** Reddit posts, staggered a few days apart, different angle
 per subreddit. Respond to every comment.
 
-**Week 2** — Show HN, once Reddit feedback has smoothed the obvious
+**Week 2:** Show HN, once Reddit feedback has smoothed the obvious
 rough edges. Nothing kills an HN launch like a bug found in the first
 ten minutes.
 
-**Weeks 3–4** — Creator outreach with the social proof from weeks 1–2.
+**Weeks 3-4:** Creator outreach with the social proof from weeks 1-2.
 
-**Ongoing** — Ship visible updates fast. The auto-updater is a retention
+**Ongoing:** Ship visible updates fast. The auto-updater is a retention
 feature: every install that receives a polished update becomes a person
 who trusts the project.
 
 ## Metrics that matter
 
-- **Download → first launch** — measures how many people the Gatekeeper
+- **Download → first launch:** measures how many people the Gatekeeper
   warning kills. If this is under ~50%, fixing signing beats every
   marketing activity.
-- **Folder chosen** — the real activation event. A user who never picks
+- **Folder chosen:** the real activation event. A user who never picks
   a folder never saw the product.
-- **Update adoption rate** — the honest measure of whether people kept it
+- **Update adoption rate:** the honest measure of whether people kept it
   installed.
 
 There is no telemetry in the app today, and adding it to a
@@ -152,8 +152,8 @@ the gaps. If it gains traction, the proven paths are a paid "Pro" tier
    approval. Expect to lose a large share of non-technical downloaders.
    The $99 Developer Program is the single highest-ROI spend available.
 
-3. **Apple Silicon only.** Intel Mac owners — heavily represented among
-   people running older hardware and keeping local libraries — cannot run
+3. **Apple Silicon only.** Intel Mac owners, heavily represented among
+   people running older hardware and keeping local libraries, cannot run
    it today. See `DISTRIBUTION.md`.
 
 4. **The gimmick trap.** The iPod view drives the virality; the library
@@ -163,20 +163,20 @@ the gaps. If it gains traction, the proven paths are a paid "Pro" tier
 ## Feature roadmap (GTM-driven)
 
 **Before launch**
-- Universal binary — do not exclude Intel users at the moment of peak
+- Universal binary. Do not exclude Intel users at the moment of peak
   attention
-- Gapless playback — table stakes for the audiophile segment
+- Gapless playback: table stakes for the audiophile segment
 - Fix any tagging gaps found in real libraries
 
-**Fast follows (weeks 1–8)**
+**Fast follows (weeks 1-8)**
 - Playlists, including .m3u import
-- Cover Flow — the single most-requested nostalgic feature, and a strong
+- Cover Flow: the single most-requested nostalgic feature, and a strong
   second viral moment
 - Smart playlists
 
 **Later, differentiating**
-- Actual iPod sync over USB — the feature nobody else offers, and the one
+- Actual iPod sync over USB: the feature nobody else offers, and the one
   that makes the name make sense. Also the feature most likely to draw
   Apple's attention.
-- Last.fm scrobbling — deeply loved by this exact audience
+- Last.fm scrobbling: deeply loved by this exact audience
 - ReplayGain support

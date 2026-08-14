@@ -41,7 +41,7 @@ Why two files:
 
 | File | Purpose |
 |---|---|
-| `dist/iPodConnect.zip` | Stable name. The website's Download button points at `/releases/latest/download/iPodConnect.zip`, which always resolves to the newest release — so the site never needs editing. |
+| `dist/iPodConnect.zip` | Stable name. The website's Download button points at `/releases/latest/download/iPodConnect.zip`, which always resolves to the newest release, so the site never needs editing. |
 | `releases/iPodConnect-<version>.zip` | Versioned name. This is what `appcast.xml` references, so Sparkle can tell versions apart. |
 
 ## The Gatekeeper problem
@@ -51,7 +51,7 @@ it, so anyone who downloads it sees *"iPod Connect cannot be opened because
 Apple cannot verify it is free of malware."* They have to right-click → Open,
 or approve it in System Settings → Privacy & Security.
 
-Technical users will push through. Most people won't — and **paying**
+Technical users will push through. Most people won't, and **paying**
 customers definitely won't.
 
 To fix it you need an Apple Developer account ($99/year), then:
