@@ -48,7 +48,8 @@ Free, open source, universal binary (Apple silicon + Intel).
 
 **Syncing**
 - **Add and remove music** on a Rockboxed iPod, with real free-space
-  tracking, no Finder or Music app involved.
+  tracking, no Finder or Music app involved. **Confirmed working on a real
+  Rockboxed iPod Mini,** in addition to the Classic.
 
 **Everything else**
 - **Light and dark**: dark mode follows Apple's HIG palette; the iPod
@@ -117,14 +118,19 @@ also clickable directly.
 ## Honesty about hardware testing
 
 Most of this app has been tested against real files and real FAT32
-volumes. The two exceptions, clearly marked in the app itself:
+volumes. What's confirmed on real hardware so far, and what isn't yet,
+clearly marked in the app itself too:
 
 - **Bootloader install on the iPod Classic** is confirmed working on real
   hardware.
+- **Syncing music to a Rockboxed iPod** is confirmed working on a real
+  iPod Mini, in addition to the Classic.
 - **Bootloader install on older iPods** (1G-5.5G, mini, nano, Colour) is
   not yet confirmed on real hardware, though the underlying tool
   (`ipodpatcher`) is Rockbox's own and widely used elsewhere. It backs up
-  your firmware first and stops if that backup fails.
+  your firmware first and stops if that backup fails. (This is separate
+  from syncing, above; a Mini synced successfully once Rockbox was on it,
+  regardless of how the bootloader got there.)
 
 If you try either path and it works (or doesn't), a report in
 [Issues](https://github.com/Davidjrsomper/ipod-connect/issues) is
