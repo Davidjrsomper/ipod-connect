@@ -7,11 +7,11 @@ struct ArtistsView: View {
     @EnvironmentObject var player: Player
 
     var body: some View {
-        HStack(spacing: 0) {
+        HSplitView {
             ArtistColumn()
-                .frame(width: 210)
-            Theme.headerBorder.frame(width: 1)
+                .frame(minWidth: 160, idealWidth: 210, maxWidth: 420)
             AlbumListView()
+                .frame(minWidth: 360)
         }
         .background(Theme.contentBG)
     }
