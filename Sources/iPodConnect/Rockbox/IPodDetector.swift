@@ -24,16 +24,19 @@ enum IPodDetector {
                 (target, version) = parseRockboxInfo(info)
             }
 
+            let disk = bsdDisk(forMountPoint: mount)
+
             found.append(ConnectedIPod(
                 id: mount,
                 volumeName: name,
                 mountPath: mount,
-                bsdDisk: bsdDisk(forMountPoint: mount),
+                bsdDisk: disk,
                 installedTarget: target,
                 installedVersion: version,
                 hasAppleFirmware: hasApple,
                 fileSystem: fileSystemType(forMountPoint: mount),
-                bsdVolume: bsdVolume(forMountPoint: mount)
+                bsdVolume: bsdVolume(forMountPoint: mount),
+                partitionScheme: disk.flatMap(partitionScheme(forWholeDisk:))
             ))
         }
         return found
@@ -61,20 +64,33 @@ enum IPodDetector {
     /// whole disk. Erasing this reformats the music partition and leaves the
     /// firmware partition, which holds the bootloader, untouched.
     static func bsdVolume(forMountPoint mount: String) -> String? {
-        guard let id = diskutilInfo(forMountPoint: mount)?["DeviceIdentifier"] as? String
+        guard let id = diskutilInfo(for: mount)?["DeviceIdentifier"] as? String
         else { return nil }
         return "/dev/" + id
     }
 
     /// diskutil's FilesystemType for a mount point, e.g. "msdos" or "hfs".
     static func fileSystemType(forMountPoint mount: String) -> String? {
-        diskutilInfo(forMountPoint: mount)?["FilesystemType"] as? String
+        diskutilInfo(for: mount)?["FilesystemType"] as? String
     }
 
-    private static func diskutilInfo(forMountPoint mount: String) -> [String: Any]? {
+    /// The whole disk's partition scheme: "FDisk_partition_scheme" (PC/MBR),
+    /// "Apple_partition_scheme" (APM) or "GUID_partition_scheme" (GPT).
+    ///
+    /// Deliberately read from the whole disk, not the volume. The scheme is a
+    /// property of the disk, and it is what the Rockbox bootloader actually
+    /// parses. A volume can report FAT32 while the disk around it still
+    /// carries an Apple partition map, and that combination is exactly what
+    /// boots to "No partition found".
+    static func partitionScheme(forWholeDisk disk: String) -> String? {
+        diskutilInfo(for: disk)?["Content"] as? String
+    }
+
+    /// Takes anything diskutil accepts: a mount point or a /dev node.
+    private static func diskutilInfo(for target: String) -> [String: Any]? {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/sbin/diskutil")
-        process.arguments = ["info", "-plist", mount]
+        process.arguments = ["info", "-plist", target]
         let pipe = Pipe()
         process.standardOutput = pipe
         process.standardError = FileHandle.nullDevice
@@ -90,7 +106,7 @@ enum IPodDetector {
     /// Maps a mount point to its whole-disk device (e.g. /dev/disk4), which is
     /// what ipodpatcher operates on.
     static func bsdDisk(forMountPoint mount: String) -> String? {
-        guard let dict = diskutilInfo(forMountPoint: mount) else { return nil }
+        guard let dict = diskutilInfo(for: mount) else { return nil }
 
         // Prefer the parent whole disk; the firmware partition lives outside
         // the mounted data partition.

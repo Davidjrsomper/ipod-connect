@@ -72,12 +72,41 @@ struct ConnectedIPod: Identifiable, Hashable {
     let fileSystem: String?
     /// The music partition itself, e.g. /dev/disk4s2.
     let bsdVolume: String?
+    /// diskutil's Content for the whole disk: the partition scheme.
+    let partitionScheme: String?
 
     /// Rockbox can only read FAT32. An HFS+ ("Macpod") iPod will accept the
     /// bootloader happily and then fail to boot, because the bootloader can't
     /// read the data partition to find .rockbox — the single most common way
     /// a Rockbox install goes wrong.
     var isFAT32: Bool { fileSystem?.lowercased() == "msdos" }
+
+    /// An iPod restored on a Mac carries an Apple partition map. Rockbox's
+    /// bootloader only parses a PC (MBR) table, so it installs fine and then
+    /// stops at "No partition found".
+    ///
+    /// Reformatting the music partition does not fix this: `diskutil
+    /// eraseVolume` works inside the existing map and leaves it in place. The
+    /// map itself has to be rewritten, which is what conversion does.
+    var isMacPod: Bool { partitionScheme == "Apple_partition_scheme" }
+
+    /// Whether the disk carries the partition table Rockbox expects. An
+    /// unreadable scheme counts as fine, so a detection failure never blocks
+    /// an install that would otherwise have worked.
+    var hasBootablePartitionMap: Bool {
+        guard let partitionScheme else { return true }
+        return partitionScheme == "FDisk_partition_scheme"
+    }
+
+    var partitionSchemeName: String {
+        switch partitionScheme {
+        case "FDisk_partition_scheme": return "PC (MBR)"
+        case "Apple_partition_scheme": return "an Apple partition map"
+        case "GUID_partition_scheme": return "GUID (GPT)"
+        case let other?: return other
+        default: return "unknown"
+        }
+    }
 
     var fileSystemName: String {
         switch fileSystem?.lowercased() {

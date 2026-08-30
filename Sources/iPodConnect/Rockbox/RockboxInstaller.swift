@@ -107,13 +107,25 @@ enum RockboxInstaller {
 
     /// Runs ipodpatcher as root via the standard macOS authorisation prompt.
     /// Returns its combined output.
+    ///
+    /// `answering` feeds a line to ipodpatcher's stdin, for the subcommands
+    /// that ask for confirmation. `captureStandardError` folds stderr into the
+    /// result, which matters for any subcommand that reports failures there
+    /// while still exiting 0.
     @discardableResult
-    static func runPatcherAsAdmin(arguments: [String]) throws -> String {
+    static func runPatcherAsAdmin(arguments: [String],
+                                  answering reply: String? = nil,
+                                  captureStandardError: Bool = false) throws -> String {
         guard let patcher = patcherURL else { throw RockboxError.patcherMissing }
 
-        let command = ([patcher.path] + arguments)
-            .map { "'" + $0.replacingOccurrences(of: "'", with: "'\\''") + "'" }
-            .joined(separator: " ")
+        func quoted(_ value: String) -> String {
+            "'" + value.replacingOccurrences(of: "'", with: "'\\''") + "'"
+        }
+
+        var command = ([patcher.path] + arguments).map(quoted).joined(separator: " ")
+        if let reply { command = "echo \(quoted(reply)) | " + command }
+        if captureStandardError { command += " 2>&1" }
+
         let script = "do shell script \"\(command.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "\"", with: "\\\""))\" with administrator privileges"
 
         let process = Process()
@@ -204,6 +216,52 @@ enum RockboxInstaller {
             throw RockboxError.patcherFailed(
                 output.trimmingCharacters(in: .whitespacesAndNewlines))
         }
+    }
+
+    /// Rewrites a Mac-partitioned iPod's Apple partition map as a PC (MBR)
+    /// one and formats the music partition as FAT32, in a single ipodpatcher
+    /// pass.
+    ///
+    /// This is the fix `formatAsFAT32` cannot perform. Rockbox's bootloader
+    /// only parses an MBR, so an iPod restored on a Mac takes the bootloader
+    /// happily and then stops at "No partition found". `diskutil eraseVolume`
+    /// reformats inside the existing map and leaves the map alone, so it
+    /// changes nothing the bootloader can see.
+    ///
+    /// ipodpatcher reuses the partition offsets it read from the Apple map, so
+    /// the firmware partition — and a bootloader already written to it —
+    /// survives the conversion.
+    static func convertToFAT32(disk: String) throws {
+        // The partition table can't be rewritten under a mounted volume.
+        unmountDisk(disk)
+
+        // -c asks for confirmation on stdin. It also reports failures on
+        // stderr while still exiting 0, so read both and check the output
+        // rather than trusting the exit status.
+        let output = try runPatcherAsAdmin(arguments: [disk, "-c"],
+                                           answering: "y",
+                                           captureStandardError: true)
+
+        // `do shell script` hands back carriage returns rather than newlines,
+        // so split on any newline character or the whole output reads as one
+        // line and the message shown would be every line run together.
+        if let failure = output
+            .split(whereSeparator: \.isNewline)
+            .first(where: { $0.contains("[ERR]") }) {
+            throw RockboxError.patcherFailed(
+                failure.replacingOccurrences(of: "[ERR]", with: "")
+                    .trimmingCharacters(in: .whitespaces))
+        }
+    }
+
+    private static func unmountDisk(_ disk: String) {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/sbin/diskutil")
+        process.arguments = ["unmountDisk", disk]
+        process.standardOutput = FileHandle.nullDevice
+        process.standardError = FileHandle.nullDevice
+        guard (try? process.run()) != nil else { return }
+        process.waitUntilExit()
     }
 
     // MARK: - iPod Classic 6G/7G (USB DFU)

@@ -5,12 +5,14 @@ struct RockboxView: View {
     @EnvironmentObject var rockbox: RockboxManager
     @State private var showBootloaderConfirm = false
     @State private var showFormatSheet = false
+    @State private var showConvertSheet = false
 
     var body: some View {
         VStack(spacing: 0) {
             header
             DeviceBar(showBootloaderConfirm: $showBootloaderConfirm,
-                      showFormatSheet: $showFormatSheet)
+                      showFormatSheet: $showFormatSheet,
+                      showConvertSheet: $showConvertSheet)
             if !rockbox.preflightIssues.isEmpty { PreflightWarnings() }
             if rockbox.isBusy { busyBar }
             if let message = rockbox.statusMessage { banner(message, isError: false) }
@@ -25,6 +27,9 @@ struct RockboxView: View {
         }
         .sheet(isPresented: $showFormatSheet) {
             FormatSheet().environmentObject(rockbox)
+        }
+        .sheet(isPresented: $showConvertSheet) {
+            ConvertSheet().environmentObject(rockbox)
         }
         .confirmationDialog(
             "Install the Rockbox bootloader?",
@@ -186,6 +191,7 @@ struct DeviceBar: View {
     @EnvironmentObject var rockbox: RockboxManager
     @Binding var showBootloaderConfirm: Bool
     @Binding var showFormatSheet: Bool
+    @Binding var showConvertSheet: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -253,9 +259,19 @@ struct DeviceBar: View {
                 Button("Install Bootloader…") { showBootloaderConfirm = true }
                     .controlSize(.small)
                     .disabled(rockbox.isBusy)
-                Button("Format as FAT32…") { showFormatSheet = true }
-                    .controlSize(.small)
-                    .disabled(rockbox.isBusy)
+                // On a Mac-partitioned iPod, formatting the volume can't help:
+                // it leaves the partition map the bootloader chokes on. Offer
+                // the conversion in its place rather than alongside it, so the
+                // one button shown is the one that works.
+                if rockbox.selectedDevice?.isMacPod == true {
+                    Button("Convert to FAT32…") { showConvertSheet = true }
+                        .controlSize(.small)
+                        .disabled(rockbox.isBusy)
+                } else {
+                    Button("Format as FAT32…") { showFormatSheet = true }
+                        .controlSize(.small)
+                        .disabled(rockbox.isBusy)
+                }
                 Spacer()
             }
 
@@ -507,6 +523,63 @@ struct FormatSheet: View {
         }
         .padding(18)
         .frame(width: 420)
+        .background(Theme.contentBG)
+    }
+}
+
+/// Shown instead of FormatSheet for an iPod carrying an Apple partition map.
+/// Same type-the-name confirmation, because it is equally destructive, but it
+/// rewrites the partition table rather than just the filesystem.
+struct ConvertSheet: View {
+    @EnvironmentObject var rockbox: RockboxManager
+    @Environment(\.dismiss) private var dismiss
+    @State private var typed = ""
+
+    private var deviceName: String { rockbox.selectedDevice?.volumeName ?? "" }
+    private var matches: Bool {
+        typed.trimmingCharacters(in: .whitespaces).caseInsensitiveCompare(deviceName) == .orderedSame
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("Convert “\(deviceName)” to FAT32?")
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(Theme.emptyTitle)
+
+            Text("""
+            This iPod was set up on a Mac, so it carries an Apple partition map. Rockbox's bootloader only reads a PC (MBR) one, which is why it starts and then reports “No partition found”.
+
+            Converting rewrites the partition map and reformats the music partition as FAT32 in one step. Simply formatting cannot fix this.
+
+            This erases every song and file on the iPod and cannot be undone. The firmware partition is left alone, so a bootloader already installed stays where it is.
+
+            You'll be asked for your administrator password, because rewriting a partition table needs direct disk access.
+            """)
+                .font(.system(size: 12))
+                .foregroundStyle(Theme.secondaryText)
+                .fixedSize(horizontal: false, vertical: true)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Type **\(deviceName)** to confirm:")
+                    .font(.system(size: 11))
+                    .foregroundStyle(Theme.secondaryText)
+                TextField("", text: $typed)
+                    .textFieldStyle(.roundedBorder)
+            }
+
+            HStack {
+                Spacer()
+                Button("Cancel") { dismiss() }
+                    .keyboardShortcut(.cancelAction)
+                Button("Erase and Convert") {
+                    dismiss()
+                    Task { await rockbox.convertToFAT32() }
+                }
+                .disabled(!matches)
+            }
+        }
+        .padding(18)
+        .frame(width: 440)
         .background(Theme.contentBG)
     }
 }

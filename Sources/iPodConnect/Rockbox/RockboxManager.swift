@@ -42,11 +42,13 @@ final class RockboxManager: ObservableObject {
     /// succeed. Both are common enough to be worth catching up front rather
     /// than leaving someone with an iPod that won't boot.
     enum PreflightIssue: Identifiable {
+        case wrongPartitionMap(String)
         case notFAT32(String)
         case rockboxMissing
 
         var id: String {
             switch self {
+            case .wrongPartitionMap: return "partitionmap"
             case .notFAT32: return "fat32"
             case .rockboxMissing: return "rockbox"
             }
@@ -54,6 +56,8 @@ final class RockboxManager: ObservableObject {
 
         var title: String {
             switch self {
+            case .wrongPartitionMap(let scheme):
+                return "This iPod uses \(scheme), not a PC partition table"
             case .notFAT32(let fs): return "This iPod is formatted \(fs), not FAT32"
             case .rockboxMissing: return "Rockbox isn't on this iPod yet"
             }
@@ -61,8 +65,10 @@ final class RockboxManager: ObservableObject {
 
         var detail: String {
             switch self {
+            case .wrongPartitionMap:
+                return "The bootloader reads a PC (MBR) partition table, so it can't see this disk at all — it will install, then stop at “No partition found”. Formatting as FAT32 won't help, because that works inside the existing partition map and leaves it in place. Use Convert to FAT32 instead: it rewrites the map and reformats in one step, and keeps any bootloader already installed. This erases the iPod."
             case .notFAT32:
-                return "Rockbox can only read FAT32. The bootloader will install, then fail to start, because it can't read the disk to find Rockbox. Reformat the iPod as MS-DOS (FAT32) in Disk Utility first — this erases it, so copy anything you want to keep off the device beforehand."
+                return "Rockbox can only read FAT32. The bootloader will install, then fail to start, because it can't read the disk to find Rockbox. Use Format as FAT32 first — this erases the iPod, so copy anything you want to keep off the device beforehand."
             case .rockboxMissing:
                 return "The bootloader starts Rockbox, but Rockbox itself isn't installed. Install it first with the button above, then install the bootloader — otherwise the iPod boots to a blank screen or falls back to Apple's firmware."
             }
@@ -73,7 +79,12 @@ final class RockboxManager: ObservableObject {
     var preflightIssues: [PreflightIssue] {
         guard let device = selectedDevice else { return [] }
         var issues: [PreflightIssue] = []
-        if device.fileSystem != nil && !device.isFAT32 {
+        // A wrong partition map subsumes a wrong filesystem: converting fixes
+        // both, so raising them separately would ask for two actions when only
+        // one exists.
+        if !device.hasBootablePartitionMap {
+            issues.append(.wrongPartitionMap(device.partitionSchemeName))
+        } else if device.fileSystem != nil && !device.isFAT32 {
             issues.append(.notFAT32(device.fileSystemName))
         }
         if !device.isRockboxed {
@@ -221,6 +232,25 @@ final class RockboxManager: ObservableObject {
             // Give the volume a moment to remount under its new name.
             try? await Task.sleep(nanoseconds: 2_000_000_000)
             return "Formatted as FAT32. Install Rockbox next, then the bootloader."
+        }
+    }
+
+    /// Rewrites a Mac-partitioned iPod's partition map as a PC (MBR) one and
+    /// reformats it as FAT32, which `formatAsFAT32` cannot do. Needs raw disk
+    /// access, so unlike formatting it asks for an administrator password.
+    func convertToFAT32() async {
+        guard let device = selectedDevice else {
+            errorMessage = RockboxError.noDevice.localizedDescription
+            return
+        }
+        guard let disk = device.bsdDisk else {
+            errorMessage = "Couldn't work out which disk this iPod is."
+            return
+        }
+
+        await run("Converting \(device.volumeName) to FAT32…") {
+            try RockboxInstaller.convertToFAT32(disk: disk)
+            return "Converted to FAT32. Unplug the iPod and plug it back in, then install Rockbox."
         }
     }
 
