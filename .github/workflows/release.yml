@@ -12,7 +12,12 @@ on:
 
 jobs:
   release:
-    runs-on: macos-15
+    # Must carry the macOS 26 SDK or later: LiquidGlass.swift references
+    # NSGlassEffectView, which older SDKs don't define, so the build fails to
+    # compile on macos-15 even though the code is runtime-gated behind
+    # `if #available(macOS 26.0, *)`. Package.swift pins the deployment target
+    # at macOS 12, so building against a newer SDK doesn't raise the floor.
+    runs-on: macos-26
     permissions:
       contents: write
 
