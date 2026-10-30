@@ -3,30 +3,42 @@
     <channel>
         <title>iPod Connect</title>
         <item>
-            <title>1.6.0</title>
-            <pubDate>Mon, 10 Aug 2026 21:50:48 +0300</pubDate>
-            <sparkle:version>33</sparkle:version>
-            <sparkle:shortVersionString>1.6.0</sparkle:shortVersionString>
+            <title>1.7.0</title>
+            <pubDate>Sat, 31 Oct 2026 01:57:19 +0200</pubDate>
+            <sparkle:version>48</sparkle:version>
+            <sparkle:shortVersionString>1.7.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>12.0</sparkle:minimumSystemVersion>
-            <description><![CDATA[<h3>iPodConnect 1.6.0</h3>
+            <description><![CDATA[<h3>iPod Connect 1.7.0</h3>
+
+<p><strong>Fixes the most common reason a Rockbox install fails on a Mac.</strong></p>
+
 <ul>
-  <li>See the commit log for what changed.</li>
+  <li><strong>Mac-formatted iPods are now detected.</strong> An iPod set up on a
+      Mac carries an Apple partition map, and Rockbox's bootloader only reads a
+      PC (MBR) one. The bootloader would install cleanly and then stop at
+      <em>"No partition found"</em>, with nothing explaining why. The app now
+      spots this before you flash anything and tells you what is wrong.</li>
+
+  <li><strong>New: Convert to FAT32.</strong> Rewrites the partition map and
+      reformats the music partition in one step, which is the only thing that
+      actually fixes a Mac-formatted iPod. Formatting alone could not: it works
+      inside the existing partition map and leaves it in place, so the disk kept
+      looking correct while staying unbootable. Your firmware partition is left
+      alone, so a bootloader already installed survives.</li>
+
+  <li><strong>Quality column</strong> in the song list and the Cover Flow
+      listing, showing bit depth and sample rate for lossless files, or bitrate
+      for everything else.</li>
+
+  <li><strong>The Artists column can be dragged</strong> to resize, instead of
+      being stuck at one width.</li>
+
+  <li><strong>Updates are silent now.</strong> New versions download in the
+      background and apply on the next launch, with no dialog for routine
+      updates. You can still check manually from the iPod Connect menu.</li>
 </ul>
 ]]></description>
-            <enclosure url="https://github.com/Davidjrsomper/ipod-connect/releases/download/v1.6.0/iPodConnect-1.6.0.zip" length="4190257" type="application/octet-stream" sparkle:edSignature="Ye3K6ujd+maZS+2RZ5HYUHFos9vwFfKRSp5jULOtkEB11Tgn0KpZXUn1PcLTV9QDjgPQ4liqKpR02gHy54YQCQ=="/>
-        </item>
-        <item>
-            <title>1.2.0</title>
-            <pubDate>Sun, 09 Aug 2026 22:18:09 +0300</pubDate>
-            <sparkle:version>23</sparkle:version>
-            <sparkle:shortVersionString>1.2.0</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description><![CDATA[<h3>iPodConnect 1.2.0</h3>
-<ul>
-  <li>See the commit log for what changed.</li>
-</ul>
-]]></description>
-            <enclosure url="https://github.com/Davidjrsomper/ipod-connect/releases/download/v1.6.0/iPodConnect-1.2.0.zip" length="4113116" type="application/octet-stream" sparkle:edSignature="MCXZeGrb5b8uWNR9Tc2dYXreA035QEYjVJ6G2k9qGAquhpbqHfLoM7o0QGZonbtwWSmqusYjx6aUYgaE/m4TCQ=="/>
+            <enclosure url="https://github.com/Davidjrsomper/ipod-connect/releases/download/v1.7.0/iPodConnect-1.7.0.zip" length="4237622" type="application/octet-stream" sparkle:edSignature="f5uK3pfF2aPf0jI5wp9L7AOm3NOcraNVWWei5r9zOdVLOc20ZLOU1LXbY916bfWEHuA32nmUG4OqUjvQKM4UAA=="/>
         </item>
     </channel>
 </rss>
